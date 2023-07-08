@@ -1,5 +1,5 @@
 # EasyEASM
-EasyASM repository for Black Hat Arsenal 2023
+EasyEASM repository for Black Hat Arsenal 2023
 
 # Description
 Easy EASM is just that... the easiest to set-up tool to give your organization visibility into its external facing assets. 
