@@ -9,26 +9,17 @@ import (
 )
 
 func main() {
-	var domains []string
 	cfg := configparser.ParseConfig()
 	Runner := passive.Runner{
-		Seed_domain: cfg.RunConfig.Seed_domain,
+		SeedDomains: cfg.RunConfig.Domains,
 	}
 
 	results := Runner.Run()
-	for {
-		res, ok := <-results
-		if !ok {
-			fmt.Println("Channel Closed")
-			break
-		} else {
-			domains = append(domains, res)
-		}
-	}
-	Runner.Data = utils.RemoveDuplicates(domains)
-	Runner.Results = len(Runner.Data)
 
-	fmt.Printf("Found %d subdomains for %s\n\n", Runner.Results, Runner.Seed_domain)
-	fmt.Println(Runner.Data)
+	Runner.Subdomains = utils.RemoveDuplicates(results)
+	Runner.Results = len(Runner.Subdomains)
+
+	fmt.Printf("Found %d subdomains\n\n", Runner.Results)
+	fmt.Println(Runner.Subdomains)
 
 }

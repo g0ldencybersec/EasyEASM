@@ -1,34 +1,38 @@
 package configparser
 
 import (
+	"fmt"
 	"log"
 	"os"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
 	RunConfig struct {
-		Seed_domain string `yaml:"seedDomain"`
+		Domains      []string `yaml:"domains"`
+		SlackToken   string   `yaml:"slack"`
+		DiscordToken string   `yaml:"discord"`
 	} `yaml:"runConfig"`
-	// Database struct {
-	//     Username string `yaml:"user"`
-	//     Password string `yaml:"pass"`
-	// } `yaml:"database"`
 }
 
 func ParseConfig() Config {
-	f, err := os.Open("config.yml")
+	// Read file data
+	data, err := os.ReadFile("config.yml")
 	if err != nil {
-		log.Fatal("Failed to load config file!")
+		log.Fatalf("error: %v", err)
 	}
-	defer f.Close()
 
-	var cfg Config
-	decoder := yaml.NewDecoder(f)
-	err = decoder.Decode(&cfg)
+	// Initialize configuration
+	var config Config
+
+	// Unmarshal YAML data into Config struct
+	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		log.Fatal("Failed to Decode/parse config!")
+		log.Fatalf("error: %v", err)
 	}
-	return cfg
+
+	// Print out the parsed data
+	fmt.Printf("Parsed config: %+v\n", config)
+	return config
 }

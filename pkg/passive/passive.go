@@ -1,6 +1,7 @@
 package passive
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/g0ldencybersec/EasyEASM/pkg/passive/amass"
@@ -8,27 +9,47 @@ import (
 )
 
 type Runner struct {
-	Seed_domain string
+	SeedDomains []string
 	Results     int
-	Data        []string
+	Subdomains  []string
 }
 
-func (r *Runner) Run() <-chan string {
+func (r *Runner) Run() []string {
+	fmt.Println("Running Passive Sources")
 	var wg sync.WaitGroup
-	results := make(chan string)
+	sf_results := make(chan string)
+	amass_results := make(chan string)
+	for _, domain := range r.SeedDomains {
+		wg.Add(2)
+		fmt.Printf("Finding domains for %s\n", domain)
+		go subfinder.RunSubfinder(domain, sf_results, &wg)
+		go amass.RunAmass(domain, amass_results, &wg)
+	}
+
+	var results []string
+	done := make(chan bool)
 
 	go func() {
-		defer func() {
-			close(results)
-		}()
-		wg.Add(2)
-
-		go subfinder.RunSubfinder(r.Seed_domain, results, &wg)
-		go amass.RunAmass(r.Seed_domain, results, &wg)
-
-		wg.Wait()
-
+		for msg := range sf_results {
+			results = append(results, msg)
+		}
+		done <- true
 	}()
 
+	go func() {
+		for msg := range amass_results {
+			results = append(results, msg)
+		}
+		done <- true
+	}()
+
+	go func() {
+		wg.Wait()
+		close(sf_results)
+		close(amass_results)
+	}()
+
+	<-done
+	<-done
 	return results
 }
