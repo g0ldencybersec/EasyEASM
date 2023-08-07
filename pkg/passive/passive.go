@@ -5,16 +5,17 @@ import (
 	"sync"
 
 	"github.com/g0ldencybersec/EasyEASM/pkg/passive/amass"
+	"github.com/g0ldencybersec/EasyEASM/pkg/passive/httpx"
 	"github.com/g0ldencybersec/EasyEASM/pkg/passive/subfinder"
 )
 
-type Runner struct {
+type PassiveRunner struct {
 	SeedDomains []string
 	Results     int
 	Subdomains  []string
 }
 
-func (r *Runner) Run() []string {
+func (r *PassiveRunner) RunPassiveEnum() []string {
 	fmt.Println("Running Passive Sources")
 	var wg sync.WaitGroup
 	sf_results := make(chan string)
@@ -52,4 +53,8 @@ func (r *Runner) Run() []string {
 	<-done
 	<-done
 	return results
+}
+
+func (r *PassiveRunner) RunHttpx() {
+	httpx.RunHttpx(r.Subdomains)
 }

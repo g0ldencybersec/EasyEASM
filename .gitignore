@@ -23,3 +23,5 @@ go.work
 # Config files
 config.yml
 cmd/config.yml
+EasyEASM.csv
+cmd/EasyEASM.csv

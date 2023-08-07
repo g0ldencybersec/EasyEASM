@@ -10,9 +10,10 @@ import (
 
 type Config struct {
 	RunConfig struct {
-		Domains      []string `yaml:"domains"`
-		SlackToken   string   `yaml:"slack"`
-		DiscordToken string   `yaml:"discord"`
+		Domains        []string `yaml:"domains"`
+		SlackWebhook   string   `yaml:"slack"`
+		DiscordWebhook string   `yaml:"discord"`
+		RunType        string   `yaml:"runType"`
 	} `yaml:"runConfig"`
 }
 
