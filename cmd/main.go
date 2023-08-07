@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/g0ldencybersec/EasyEASM/pkg/active"
 	"github.com/g0ldencybersec/EasyEASM/pkg/configparser"
 	"github.com/g0ldencybersec/EasyEASM/pkg/passive"
 	"github.com/g0ldencybersec/EasyEASM/pkg/utils"
@@ -51,7 +52,43 @@ func main() {
 			os.Remove("old_EasyEASM.csv")
 		}
 	} else if strings.ToLower(cfg.RunConfig.RunType) == "complete" {
-		fmt.Println("Run complete recon")
+		// PASSIVE
+		PassiveRunner := passive.PassiveRunner{
+			SeedDomains: cfg.RunConfig.Domains,
+		}
+		passiveResults := PassiveRunner.RunPassiveEnum()
+
+		PassiveRunner.Subdomains = utils.RemoveDuplicates(passiveResults)
+		PassiveRunner.Results = len(PassiveRunner.Subdomains)
+
+		//ACTIVE
+		ActiveRunner := active.ActiveRunner{
+			SeedDomains: cfg.RunConfig.Domains,
+		}
+		activeResults := ActiveRunner.RunActiveEnum()
+		activeResults = append(activeResults, passiveResults...)
+
+		ActiveRunner.Subdomains = utils.RemoveDuplicates(activeResults)
+
+		//ALTERX
+		permutationResults := ActiveRunner.RunPermutationScan()
+		ActiveRunner.Subdomains = append(ActiveRunner.Subdomains, permutationResults...)
+
+		ActiveRunner.Subdomains = utils.RemoveDuplicates(ActiveRunner.Subdomains)
+		ActiveRunner.Results = len(ActiveRunner.Subdomains)
+
+		//HTTPX
+		fmt.Printf("Found %d subdomains\n\n", ActiveRunner.Results)
+		fmt.Println(ActiveRunner.Subdomains)
+		fmt.Println("Checking which domains are live and generating assets csv...")
+		ActiveRunner.RunHttpx()
+		if prevRun && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
+			utils.NotifyNewDomainsSlack(ActiveRunner.Subdomains, cfg.RunConfig.SlackWebhook)
+			os.Remove("old_EasyEASM.csv")
+		} else if prevRun && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
+			utils.NotifyNewDomainsDiscord(ActiveRunner.Subdomains, cfg.RunConfig.DiscordWebhook)
+			os.Remove("old_EasyEASM.csv")
+		}
 	} else {
 		panic("Please pick a valid run mode and add it to your config.yml file! You can set runType to either 'fast' or 'complete'")
 	}
