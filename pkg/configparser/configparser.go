@@ -1,7 +1,6 @@
 package configparser
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -34,8 +33,5 @@ func ParseConfig() Config {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-
-	// Print out the parsed data
-	fmt.Printf("Parsed config: %+v\n", config)
 	return config
 }
