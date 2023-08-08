@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
-func RunDnsx(seedDomains []string) []string {
+func RunDnsx(seedDomains []string, wordlist string, threads int) []string {
 	fmt.Printf("Runing Bruteforce!")
 	var results []string
 	for _, domain := range seedDomains {
 		if domain != "" {
-			cmd := exec.Command("dnsx", "-d", domain, "-silent", "-w", "subdomains.txt", "-a", "-cname", "aaaa")
+			cmd := exec.Command("dnsx", "-d", domain, "-silent", "-w", wordlist, "-a", "-cname", "-aaaa", "-t", strconv.Itoa(threads))
 
 			var out bytes.Buffer
 			cmd.Stdout = &out

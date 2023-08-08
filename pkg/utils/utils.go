@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 )
 
 func RemoveDuplicates(slice []string) []string {
@@ -180,4 +181,53 @@ func sendToDiscord(webhookURL string, message string) {
 	if resp.StatusCode != http.StatusNoContent {
 		fmt.Println("Error response from Discord:", resp.Status)
 	}
+}
+
+func InstallTools() {
+	check := checkTool("amass")
+	if !check {
+		installGoTool("amass", "github.com/owasp-amass/amass/v4/...@master")
+	}
+
+	check = checkTool("subfinder")
+	if !check {
+		installGoTool("subfinder", "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest")
+	}
+
+	check = checkTool("httpx")
+	if !check {
+		installGoTool("httpx", "github.com/projectdiscovery/httpx/cmd/httpx@latest")
+	}
+
+	check = checkTool("dnsx")
+	if !check {
+		installGoTool("dnsx", "github.com/projectdiscovery/dnsx/cmd/dnsx@latest")
+	}
+
+	check = checkTool("alterx")
+	if !check {
+		installGoTool("alterx", "github.com/projectdiscovery/alterx/cmd/alterx@latest")
+	}
+	fmt.Println("All needed tools installed!")
+}
+
+func checkTool(name string) bool {
+	_, err := exec.LookPath(name)
+	if err != nil {
+		fmt.Printf("%s is not installed\n", name)
+		return false
+	}
+
+	return true
+}
+
+func installGoTool(name string, path string) {
+	cmd := exec.Command("go", "install", path)
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("Failed to install %s: %v\n", name, err)
+		panic(err)
+	}
+
+	fmt.Printf("%s installed successfully\n", name)
 }

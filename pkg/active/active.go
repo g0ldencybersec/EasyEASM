@@ -12,12 +12,12 @@ type ActiveRunner struct {
 	Subdomains  []string
 }
 
-func (r *ActiveRunner) RunActiveEnum() []string {
-	return dnsx.RunDnsx(r.SeedDomains)
+func (r *ActiveRunner) RunActiveEnum(wordlist string, threads int) []string {
+	return dnsx.RunDnsx(r.SeedDomains, wordlist, threads)
 }
 
-func (r *ActiveRunner) RunPermutationScan() []string {
-	return alterx.RunAlterx(r.Subdomains)
+func (r *ActiveRunner) RunPermutationScan(threads int) []string {
+	return alterx.RunAlterx(r.Subdomains, threads)
 }
 
 func (r *ActiveRunner) RunHttpx() {

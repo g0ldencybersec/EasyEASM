@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
-func RunAlterx(domains []string) []string {
+func RunAlterx(domains []string, threads int) []string {
 	fmt.Println("Starting permuatation scan!")
 	var results []string
 	createDomainFile(domains)
@@ -21,7 +22,7 @@ func RunAlterx(domains []string) []string {
 		panic(err)
 	}
 
-	cmd = exec.Command("dnsx", "-l", "alterxDomains.txt", "-silent", "-a", "-cname", "aaaa")
+	cmd = exec.Command("dnsx", "-l", "alterxDomains.txt", "-silent", "-a", "-cname", "-aaaa", "-t", strconv.Itoa(threads))
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
@@ -39,6 +40,7 @@ func RunAlterx(domains []string) []string {
 	fmt.Println("ALTERX RESULTS")
 	fmt.Println(results)
 	os.Remove("tempDomains.txt")
+	os.Remove("alterxDomains.txt")
 
 	return results
 }

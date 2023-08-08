@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	utils.InstallTools()
 	// Parse the configuraton file
 	cfg := configparser.ParseConfig()
 
@@ -27,7 +28,6 @@ func main() {
 	} else {
 		fmt.Println("No previous run data found")
 		prevRun = false
-		fmt.Printf("File does not exist\n")
 	}
 
 	// Fast run. This is passive enumeration only
@@ -65,13 +65,13 @@ func main() {
 		ActiveRunner := active.ActiveRunner{
 			SeedDomains: cfg.RunConfig.Domains,
 		}
-		activeResults := ActiveRunner.RunActiveEnum()
+		activeResults := ActiveRunner.RunActiveEnum(cfg.RunConfig.ActiveWordlist, cfg.RunConfig.ActiveThreads)
 		activeResults = append(activeResults, passiveResults...)
 
 		ActiveRunner.Subdomains = utils.RemoveDuplicates(activeResults)
 
 		//ALTERX
-		permutationResults := ActiveRunner.RunPermutationScan()
+		permutationResults := ActiveRunner.RunPermutationScan(cfg.RunConfig.ActiveThreads)
 		ActiveRunner.Subdomains = append(ActiveRunner.Subdomains, permutationResults...)
 
 		ActiveRunner.Subdomains = utils.RemoveDuplicates(ActiveRunner.Subdomains)

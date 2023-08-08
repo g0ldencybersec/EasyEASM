@@ -14,6 +14,8 @@ type Config struct {
 		SlackWebhook   string   `yaml:"slack"`
 		DiscordWebhook string   `yaml:"discord"`
 		RunType        string   `yaml:"runType"`
+		ActiveWordlist string   `yaml:"activeWordList"`
+		ActiveThreads  int      `yaml:"activeThreads"`
 	} `yaml:"runConfig"`
 }
 

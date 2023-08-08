@@ -25,3 +25,5 @@ config.yml
 cmd/config.yml
 EasyEASM.csv
 cmd/EasyEASM.csv
+subdomains.txt
+cmd/subdomains.txt
