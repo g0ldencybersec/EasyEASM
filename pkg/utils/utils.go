@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -222,12 +223,14 @@ func checkTool(name string) bool {
 }
 
 func installGoTool(name string, path string) {
-	cmd := exec.Command("go", "install", path)
-	err := cmd.Run()
+	// Replace this with the package you want to install
+	packagePath := path
+
+	cmd := exec.Command("go", "install", packagePath)
+	cmdOutput, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Failed to install %s: %v\n", name, err)
-		panic(err)
+		log.Fatalf("An error occurred while installing the package: %s\n%s", err, cmdOutput)
 	}
 
-	fmt.Printf("%s installed successfully\n", name)
+	log.Printf("Successfully installed the package: %s", packagePath)
 }
