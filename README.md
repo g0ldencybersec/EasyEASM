@@ -44,3 +44,7 @@ To run the tool, fill out the config file: `config.yml`. Then, run the `easyeasm
 ```
 
 After the run is complete, you should see the output CSV (`EasyEASM.csv`) in the run directory. This CSV can be added to your asset database and risk register!
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) for details.
