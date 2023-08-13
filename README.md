@@ -1,6 +1,10 @@
+<div align="center"> 
+
 # EasyEASM
 
-EasyEASM repository for Black Hat Arsenal 2023
+EasyEASM repository for [Black Hat Arsenal 2023](https://www.blackhat.com/us-23/arsenal/schedule/index.html#easy-easm---the-zero-dollar-attack-surface-management-tool-33645) and [Recon Village @ DEF CON 2023](https://reconvillage.org/recon-village-talks-2023-defcon-31/).
+
+</div>
 
 ## Description
 
@@ -50,3 +54,9 @@ After the run is complete, you should see the output CSV (`EasyEASM.csv`) in the
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) for details.
+
+## Contact
+
+- Gunnar Andrews @ 
+- Olivia Gallucci @ olivia[@]oliviagallucci.com
+- Jason Haddix @ 
