@@ -4,7 +4,9 @@
 
 # EasyEASM
 
-EasyEASM repository for [Black Hat Arsenal 2023](https://www.blackhat.com/us-23/arsenal/schedule/index.html#easy-easm---the-zero-dollar-attack-surface-management-tool-33645) and [Recon Village @ DEF CON 2023](https://reconvillage.org/recon-village-talks-2023-defcon-31/).
+Zero-dollar attack surface management tool
+
+featured at [Black Hat Arsenal 2023](https://www.blackhat.com/us-23/arsenal/schedule/index.html#easy-easm---the-zero-dollar-attack-surface-management-tool-33645) and [Recon Village @ DEF CON 2023](https://reconvillage.org/recon-village-talks-2023-defcon-31/).
 
 ![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)
 <a href="https://github.com/g0ldencybersec/EasyEASM/blob/main/LICENSE.md">![MIT license](https://img.shields.io/badge/License-MIT-violet.svg?style=for-the-badge)</a>
