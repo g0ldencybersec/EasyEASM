@@ -28,3 +28,6 @@ easyeasm/EasyEASM.csv
 subdomains.txt
 easyeasm/subdomains.txt
 easyeasm/easyeasm
+
+# OS
+.DS_Store
