@@ -12,6 +12,7 @@ featured at [Black Hat Arsenal 2023](https://www.blackhat.com/us-23/arsenal/sche
   <a href="https://github.com/g0ldencybersec/EasyEASM/blob/main/LICENSE.md">![MIT license](https://img.shields.io/badge/License-MIT-violet.svg?style=for-the-badge)</a>
   <a href="">![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)</a>
   <a href="">![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)</a>
+  
   <a href="https://youtu.be/hx0dBo-zKE8?si=XLTHkUDm1zFzyofq">![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)</a>
 
 </div>
