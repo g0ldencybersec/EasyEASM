@@ -23,6 +23,8 @@ If you would like to contribute to EasyEASM, here are some ways you can help:
 
 ### Help Wanted
 
+- TBD 
+
 ## Reporting Bugs
 
 If you encounter a bug or problem with EasyEASM, please follow these steps:
