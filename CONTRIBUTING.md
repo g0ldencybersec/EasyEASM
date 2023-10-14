@@ -27,9 +27,9 @@ If you would like to contribute to EasyEASM, here are some ways you can help:
 
 If you encounter a bug or problem with EasyEASM, please follow these steps:
 
-1. Check if the bug has already been reported in the [Issues](https://github.com/yourusername/projectname/issues) section.
+1. Check if the bug has already been reported in the [Issues](https://github.com/g0ldencybersec/EasyEASM/issues) section.
 
-2. If it's a new issue, create a detailed bug report by [opening a new issue](https://github.com/yourusername/projectname/issues/new).
+2. If it's a new issue, create a detailed bug report by [opening a new issue](https://github.com/g0ldencybersec/EasyEASM/issues/new).
 
 3. Include information about your environment, steps to reproduce the bug, and any relevant error messages.
 
@@ -37,9 +37,9 @@ If you encounter a bug or problem with EasyEASM, please follow these steps:
 
 If you have a feature request, please follow these steps:
 
-1. Check if the feature has already been requested in the [Issues](https://github.com/yourusername/projectname/issues) section.
+1. Check if the feature has already been requested in the [Issues](https://github.com/g0ldencybersec/EasyEASM/issues) section.
 
-2. If it's a new request, create a detailed feature request by [opening a new issue](https://github.com/yourusername/projectname/issues/new).
+2. If it's a new request, create a detailed feature request by [opening a new issue](https://github.com/g0ldencybersec/EasyEASM/issues/new).
 
 3. Describe the feature you'd like to see and explain why it would be valuable.
 
