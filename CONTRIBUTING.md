@@ -23,7 +23,67 @@ If you would like to contribute to EasyEASM, here are some ways you can help:
 
 ### Help Wanted
 
-- TBD 
+Here are some features and improvements to enhance EasyEASM.
+
+- - **Custom scan profiles**
+   - Allow users to define custom scan profiles with specific configurations, such as different wordlists, thread counts, or scan types, and select them at runtime.
+
+- **Interactive mode**
+   - Develop an interactive mode with a menu-driven interface that guides users through scan configuration and execution.
+
+- **Rate limiting and throttling**
+   - Implement rate limiting and request throttling to avoid excessive traffic to target domains and prevent getting blocked or banned.
+
+- **Result export formats**
+   - Support for exporting scan results in various formats, such as JSON, XML, or HTML, for easier analysis and reporting.
+
+- **Error handling and logging**
+   - Improve error handling to gracefully handle failures and provide more informative error messages. Implement comprehensive logging to keep track of scan activities.
+
+- **Integration with Security Information and Event Management (SIEM) systems**
+   - Allow the program to integrate with SIEM systems, making it easier to correlate scan data with other security events.
+
+- **Graphical user interface (GUI)**
+   - Create a graphical user interface (GUI) for the program to make it more accessible to users who prefer a visual interface over the command line.
+
+- **Scheduled scans**
+   - Add the ability to schedule scans to run at specific intervals, ensuring continuous monitoring of subdomains.
+
+- **Credential testing**
+   - Include the option to perform credential testing against discovered subdomains to check for unauthorized access.
+
+- **Subdomain tagging and categorization**
+   - Allow users to tag and categorize discovered subdomains for better organization and analysis.
+
+- **Integration with vulnerability scanners**
+   - Enable integration with vulnerability scanning tools to automatically identify and assess vulnerabilities on discovered subdomains.
+
+- **Multithreading and parallelism**
+   - Optimize the program to utilize multithreading and parallelism effectively, improving scan performance.
+
+- **Support for Internationalized Domain Names (IDNs)**
+   - Extend the program to handle internationalized domain names, allowing for scanning of domains with non-ASCII characters.
+
+- **Integration with external threat intelligence feeds**
+   - Integrate with external threat intelligence feeds to enrich subdomain information and identify potential threats.
+
+- **Advanced reporting and visualization**
+   - Provide advanced reporting and visualization features, including graphs, charts, and statistics on scan results.
+
+- **Auto-updating**
+   - Implement an auto-updating mechanism to keep the program and its dependencies up to date.
+
+- **User profiles and authentication**
+   - Allow users to create profiles with authentication credentials for accessing protected subdomains.
+
+- **Distributed scanning**
+   - Enable distributed scanning across multiple machines for larger-scale subdomain discovery.
+
+- **Scripting and automation**
+   - Provide a scripting interface (e.g., via APIs) for programmatic control and automation of scans.
+
+- **Cross-platform support**
+   - Ensure the program is compatible with different operating systems, specifically Windows. 
 
 ## Reporting Bugs
 
