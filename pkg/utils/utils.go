@@ -185,28 +185,17 @@ func sendToDiscord(webhookURL string, message string) {
 }
 
 func InstallTools() {
-	if !checkTool("amass") {
-		installGoTool("amass", "github.com/owasp-amass/amass/v4/...@master")
-	}
-
-	if !checkTool("oam_subs") {
-		installGoTool("oam_subs", "github.com/owasp-amass/oam-tools/cmd/oam_subs@master")
-	}
-
-	if !checkTool("subfinder") {
-		installGoTool("subfinder", "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest")
-	}
-
-	if !checkTool("httpx") {
-		installGoTool("httpx", "github.com/projectdiscovery/httpx/cmd/httpx@latest")
-	}
-
-	if !checkTool("dnsx") {
-		installGoTool("dnsx", "github.com/projectdiscovery/dnsx/cmd/dnsx@latest")
-	}
-
-	if !checkTool("alterx") {
-		installGoTool("alterx", "github.com/projectdiscovery/alterx/cmd/alterx@latest")
+	for name, path := range map[string]string{
+		"alterx":    "github.com/projectdiscovery/alterx/cmd/alterx@latest",
+		"amass":     "github.com/owasp-amass/amass/v4/...@master",
+		"dnsx":      "github.com/projectdiscovery/dnsx/cmd/dnsx@latest",
+		"httpx":     "github.com/projectdiscovery/httpx/cmd/httpx@latest",
+		"oam_subs":  "github.com/owasp-amass/oam-tools/cmd/oam_subs@master",
+		"subfinder": "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
+	} {
+		if !checkTool(name) {
+			installGoTool(name, path)
+		}
 	}
 
 	fmt.Println("All needed tools installed!")
