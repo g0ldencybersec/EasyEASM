@@ -185,30 +185,30 @@ func sendToDiscord(webhookURL string, message string) {
 }
 
 func InstallTools() {
-	check := checkTool("amass")
-	if !check {
+	if !checkTool("amass") {
 		installGoTool("amass", "github.com/owasp-amass/amass/v4/...@master")
 	}
 
-	check = checkTool("subfinder")
-	if !check {
+	if !checkTool("oam_subs") {
+		installGoTool("oam_subs", "github.com/owasp-amass/oam-tools/cmd/oam_subs@master")
+	}
+
+	if !checkTool("subfinder") {
 		installGoTool("subfinder", "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest")
 	}
 
-	check = checkTool("httpx")
-	if !check {
+	if !checkTool("httpx") {
 		installGoTool("httpx", "github.com/projectdiscovery/httpx/cmd/httpx@latest")
 	}
 
-	check = checkTool("dnsx")
-	if !check {
+	if !checkTool("dnsx") {
 		installGoTool("dnsx", "github.com/projectdiscovery/dnsx/cmd/dnsx@latest")
 	}
 
-	check = checkTool("alterx")
-	if !check {
+	if !checkTool("alterx") {
 		installGoTool("alterx", "github.com/projectdiscovery/alterx/cmd/alterx@latest")
 	}
+
 	fmt.Println("All needed tools installed!")
 }
 
