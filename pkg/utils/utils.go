@@ -185,30 +185,19 @@ func sendToDiscord(webhookURL string, message string) {
 }
 
 func InstallTools() {
-	check := checkTool("amass")
-	if !check {
-		installGoTool("amass", "github.com/owasp-amass/amass/v4/...@master")
+	for name, path := range map[string]string{
+		"alterx":    "github.com/projectdiscovery/alterx/cmd/alterx@latest",
+		"amass":     "github.com/owasp-amass/amass/v4/...@master",
+		"dnsx":      "github.com/projectdiscovery/dnsx/cmd/dnsx@latest",
+		"httpx":     "github.com/projectdiscovery/httpx/cmd/httpx@latest",
+		"oam_subs":  "github.com/owasp-amass/oam-tools/cmd/oam_subs@master",
+		"subfinder": "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
+	} {
+		if !checkTool(name) {
+			installGoTool(name, path)
+		}
 	}
 
-	check = checkTool("subfinder")
-	if !check {
-		installGoTool("subfinder", "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest")
-	}
-
-	check = checkTool("httpx")
-	if !check {
-		installGoTool("httpx", "github.com/projectdiscovery/httpx/cmd/httpx@latest")
-	}
-
-	check = checkTool("dnsx")
-	if !check {
-		installGoTool("dnsx", "github.com/projectdiscovery/dnsx/cmd/dnsx@latest")
-	}
-
-	check = checkTool("alterx")
-	if !check {
-		installGoTool("alterx", "github.com/projectdiscovery/alterx/cmd/alterx@latest")
-	}
 	fmt.Println("All needed tools installed!")
 }
 
