@@ -187,7 +187,7 @@ func sendToDiscord(webhookURL string, message string) {
 func InstallTools() {
 	for name, path := range map[string]string{
 		"alterx":    "github.com/projectdiscovery/alterx/cmd/alterx@latest",
-		"amass":     "github.com/owasp-amass/amass/v4/...@master",
+		"amass":     "github.com/owasp-amass/amass/v3/...@master",
 		"dnsx":      "github.com/projectdiscovery/dnsx/cmd/dnsx@latest",
 		"httpx":     "github.com/projectdiscovery/httpx/cmd/httpx@latest",
 		"oam_subs":  "github.com/owasp-amass/oam-tools/cmd/oam_subs@master",
