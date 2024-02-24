@@ -42,7 +42,12 @@ func NotifyNewDomainsSlack(newDomains []string, slackWebhook string) {
 	var oldDomains []string
 
 	// Iterate through the records, extracting the value from the specified column
+	var firstLine bool = true
 	for {
+		if firstLine {
+			reader.Read()
+			firstLine = false
+		}
 		record, err := reader.Read()
 		if err != nil {
 			if err == csv.ErrTrailingComma {
