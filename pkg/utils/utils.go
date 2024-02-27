@@ -36,7 +36,7 @@ func NotifyNewDomainsSlack(newDomains []string, slackWebhook string) {
 	reader := csv.NewReader(inputFile)
 
 	// The index of the column you want to extract
-	columnToExtract := 3
+	columnToExtract := 6
 
 	// Slice to hold the values from the specified column
 	var oldDomains []string
@@ -71,6 +71,9 @@ func NotifyNewDomainsSlack(newDomains []string, slackWebhook string) {
 	NewDomainsToAlert := difference(newDomains, oldDomains)
 	OldDomainsToAlert := difference(oldDomains, newDomains)
 
+	fmt.Println("Old domains: ", oldDomains)
+	fmt.Println("New domains: ", NewDomainsToAlert)
+
 	sendToSlack(slackWebhook, fmt.Sprintf("New live domains found: %v", NewDomainsToAlert))
 	sendToSlack(slackWebhook, fmt.Sprintf("Domains that were not to be now longer live: %v", OldDomainsToAlert))
 }
@@ -87,7 +90,7 @@ func NotifyNewDomainsDiscord(newDomains []string, discordWebhook string) {
 	reader := csv.NewReader(inputFile)
 
 	// The index of the column you want to extract
-	columnToExtract := 3
+	columnToExtract := 6
 
 	// Slice to hold the values from the specified column
 	var oldDomains []string
@@ -117,6 +120,8 @@ func NotifyNewDomainsDiscord(newDomains []string, discordWebhook string) {
 	NewDomainsToAlert := difference(newDomains, oldDomains)
 	OldDomainsToAlert := difference(oldDomains, newDomains)
 
+	fmt.Println("Old domains: ", oldDomains)
+	fmt.Println("New domains: ", NewDomainsToAlert)
 	sendToDiscord(discordWebhook, fmt.Sprintf("New live domains found: %v", NewDomainsToAlert))
 	sendToDiscord(discordWebhook, fmt.Sprintf("Domains that were not to be now longer live: %v", OldDomainsToAlert))
 }
