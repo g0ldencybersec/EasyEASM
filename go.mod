@@ -1,4 +1,4 @@
-module github.com/g0ldencybersec/EasyEASM
+module github.com/sethlaw/EasyEASM
 
 go 1.20
 
