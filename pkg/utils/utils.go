@@ -319,7 +319,7 @@ func insertDomain(db *sql.DB, domain string) {
 		log.Fatalln(err.Error())
 	}
 	var now = time.Now()
-	_, err = statement.Exec(domain, 1, 0, now, now)
+	_, err = statement.Exec(domain, 0, 1, now, now)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}

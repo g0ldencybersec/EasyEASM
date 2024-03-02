@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/g0ldencybersec/EasyEASM/pkg/active"
-	"github.com/g0ldencybersec/EasyEASM/pkg/configparser"
-	"github.com/g0ldencybersec/EasyEASM/pkg/passive"
-	"github.com/g0ldencybersec/EasyEASM/pkg/utils"
+	"github.com/sethlaw/EasyEASM/pkg/active"
+	"github.com/sethlaw/EasyEASM/pkg/configparser"
+	"github.com/sethlaw/EasyEASM/pkg/passive"
+	"github.com/sethlaw/EasyEASM/pkg/utils"
 )
 
 func main() {
@@ -103,6 +103,11 @@ func main() {
 		// httpx scan
 		fmt.Printf("Found %d subdomains: ", ActiveRunner.Results)
 		fmt.Println(ActiveRunner.Subdomains)
+		if !prevRun {
+			for _, domain := range ActiveRunner.Subdomains {
+				utils.insertDomain(domain, "./easyeasm.db")
+			}
+		}
 		fmt.Println("Checking which domains are live and generating assets csv...")
 		ActiveRunner.RunHttpx()
 
