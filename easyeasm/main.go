@@ -31,8 +31,11 @@ func main() {
 		if e != nil {
 			panic(e)
 		}
+		var domains = utils.getActiveDomains("./easyeasm.db")
+		fmt.Println("Active domains from previous run: ", len(domains))
 	} else {
 		fmt.Println("No previous run data found")
+		utils.setupDB()
 		prevRun = false
 	}
 
@@ -63,9 +66,11 @@ func main() {
 		if prevRun && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
 			utils.NotifyNewDomainsSlack(Runner.Subdomains, cfg.RunConfig.SlackWebhook)
 			os.Remove("old_EasyEASM.csv")
+			os.Remove("old_tracked.csv")
 		} else if prevRun && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
 			utils.NotifyNewDomainsDiscord(Runner.Subdomains, cfg.RunConfig.DiscordWebhook)
 			os.Remove("old_EasyEASM.csv")
+			os.Remove("old_tracked.csv")
 		}
 	} else if strings.ToLower(cfg.RunConfig.RunType) == "complete" {
 		// complete run: passive and active enumeration
@@ -96,7 +101,7 @@ func main() {
 		ActiveRunner.Results = len(ActiveRunner.Subdomains)
 
 		// httpx scan
-		fmt.Printf("Found %d subdomains\n\n", ActiveRunner.Results)
+		fmt.Printf("Found %d subdomains: ", ActiveRunner.Results)
 		fmt.Println(ActiveRunner.Subdomains)
 		fmt.Println("Checking which domains are live and generating assets csv...")
 		ActiveRunner.RunHttpx()
@@ -105,9 +110,11 @@ func main() {
 		if prevRun && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
 			utils.NotifyNewDomainsSlack(ActiveRunner.Subdomains, cfg.RunConfig.SlackWebhook)
 			os.Remove("old_EasyEASM.csv")
+			os.Remove("old_tracked.csv")
 		} else if prevRun && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
 			utils.NotifyNewDomainsDiscord(ActiveRunner.Subdomains, cfg.RunConfig.DiscordWebhook)
 			os.Remove("old_EasyEASM.csv")
+			os.Remove("old_tracked.csv")
 		}
 	} else {
 		// invalid run mode specified
