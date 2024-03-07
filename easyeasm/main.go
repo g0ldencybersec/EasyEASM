@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -26,15 +29,13 @@ func main() {
 	cfg := configparser.ParseConfig()
 
 	// db setup
-	var db *sql.DB
 	if _, err := os.Stat("easyeasm.db"); err == nil {
-		db, _ := sql.Open("sqlite3", "./easyeasm.db")
-		defer db.Close()
 	} else {
 		setupDB()
-		db, _ := sql.Open("sqlite3", "./easyeasm.db")
-		defer db.Close()
+		// db, _ := sql.Open("sqlite3", "./easyeasm.db")
 	}
+	db, _ := sql.Open("sqlite3", "./easyeasm.db")
+
 	// check for previous run file
 	var prevRun bool
 	if _, err := os.Stat("EasyEASM.csv"); err == nil {
@@ -50,55 +51,61 @@ func main() {
 		fmt.Println("No previous run data found")
 		prevRun = false
 	}
+	var newDomains = []string{}
+
+	// create a PassiveRunner instance
+	Runner := passive.PassiveRunner{
+		SeedDomains: cfg.RunConfig.Domains,
+	}
+
+	// run passive enumeration and get the results
+	passiveResults := Runner.RunPassiveEnum()
+
+	// remove duplicate subdomains
+	Runner.Subdomains = utils.RemoveDuplicates(passiveResults)
+	Runner.Results = len(Runner.Subdomains)
+
+	fmt.Printf("\x1b[31mFound %d subdomains\n\n\x1b[0m", Runner.Results)
+	fmt.Println(Runner.Subdomains)
+	fmt.Println("Checking which domains are live and generating assets csv...")
+	for _, domain := range Runner.Subdomains {
+		if !domainExists(db, domain) {
+			insertDomain(db, domain)
+			newDomains = append(newDomains, domain)
+		}
+		updateActiveDomain(db, domain, true)
+	}
 
 	// check the run type specified in the config and perform actions accordingly
 	if strings.ToLower(cfg.RunConfig.RunType) == "fast" {
 		// fast run: passive enumeration only
 
-		// create a PassiveRunner instance
-		Runner := passive.PassiveRunner{
-			SeedDomains: cfg.RunConfig.Domains,
-		}
-
-		// run passive enumeration and get the results
-		passiveResults := Runner.RunPassiveEnum()
-
-		// remove duplicate subdomains
-		Runner.Subdomains = utils.RemoveDuplicates(passiveResults)
-		Runner.Results = len(Runner.Subdomains)
-
-		fmt.Printf("\x1b[31mFound %d subdomains\n\n\x1b[0m", Runner.Results)
-		fmt.Println(Runner.Subdomains)
-		fmt.Println("Checking which domains are live and generating assets csv...")
-		if !prevRun {
-			for _, domain := range Runner.Subdomains {
-				insertDomain(db, domain)
-			}
-		}
-
 		// run Httpx to check live domains
 		Runner.RunHttpx()
+		for _, domain := range Runner.Subdomains {
+			if !domainExists(db, domain) {
+				insertDomain(db, domain)
+				newDomains = append(newDomains, domain)
+			}
+			updateLiveDomain(db, domain, true)
+		}
 
-		// notify about new domains if prevRun is true
-		if prevRun && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
-			utils.NotifyNewDomainsSlack(Runner.Subdomains, cfg.RunConfig.SlackWebhook)
-			os.Remove("old_EasyEASM.csv")
-		} else if prevRun && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
-			utils.NotifyNewDomainsDiscord(Runner.Subdomains, cfg.RunConfig.DiscordWebhook)
-			os.Remove("old_EasyEASM.csv")
+		// notify about new domains
+		if len(newDomains) > 0 {
+			if strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
+				sendToSlack(cfg.RunConfig.SlackWebhook, fmt.Sprintf("New domains discovered: %v", newDomains))
+				// utils.NotifyNewDomainsSlack(newDomains, cfg.RunConfig.SlackWebhook)
+				os.Remove("old_EasyEASM.csv")
+			}
+			if strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
+				utils.NotifyNewDomainsDiscord(Runner.Subdomains, cfg.RunConfig.DiscordWebhook)
+				os.Remove("old_EasyEASM.csv")
+			}
+		} else {
+			fmt.Println("No new domains found")
 		}
 	} else if strings.ToLower(cfg.RunConfig.RunType) == "complete" {
-		// complete run: passive and active enumeration
-
-		// passive enumeration
-		PassiveRunner := passive.PassiveRunner{
-			SeedDomains: cfg.RunConfig.Domains,
-		}
-		passiveResults := PassiveRunner.RunPassiveEnum()
-
-		// remove duplicate subdomains
-		PassiveRunner.Subdomains = utils.RemoveDuplicates(passiveResults)
-		PassiveRunner.Results = len(PassiveRunner.Subdomains)
+		// complete run: active enumeration
 
 		// active enumeration
 		ActiveRunner := active.ActiveRunner{
@@ -133,6 +140,7 @@ func main() {
 		// invalid run mode specified
 		panic("Please pick a valid run mode and add it to your config.yml file! You can set runType to either 'fast' or 'complete'")
 	}
+	db.Close() // Close the SQLite File
 }
 
 func setupDB() {
@@ -169,7 +177,6 @@ func getDomains(db *sql.DB) []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rows.Close()
 	var domains []string
 	for rows.Next() {
 		var domain string
@@ -179,13 +186,25 @@ func getDomains(db *sql.DB) []string {
 	return domains
 }
 
+func domainExists(db *sql.DB, domain string) bool {
+	rows, err := db.Query("SELECT domain FROM domains WHERE domain = ?", domain)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return true
+	}
+	return false
+}
+
 func getActiveDomains(db *sql.DB) []string {
 	rows, err := db.Query("SELECT domain FROM domains WHERE active = 1")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rows.Close()
 	var domains []string
+	defer rows.Close()
 	for rows.Next() {
 		var domain string
 		rows.Scan(&domain)
@@ -199,8 +218,8 @@ func getLiveDomains(db *sql.DB) []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rows.Close()
 	var domains []string
+	defer rows.Close()
 	for rows.Next() {
 		var domain string
 		rows.Scan(&domain)
@@ -216,13 +235,26 @@ func insertDomain(db *sql.DB, domain string) {
 		log.Fatalln(err.Error())
 	}
 	var now = time.Now()
-	_, err = statement.Exec(domain, 0, 1, now, now)
+	_, err = statement.Exec(domain, 1, 0, now, now)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 }
 
-func updateDomain(db *sql.DB, domain string, live bool) {
+func updateActiveDomain(db *sql.DB, domain string, active bool) {
+	updateSQL := `UPDATE domains SET active = ?, last_seen = ? WHERE domain = ?`
+	statement, err := db.Prepare(updateSQL)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	var now = time.Now()
+	_, err = statement.Exec(active, now, domain)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+}
+
+func updateLiveDomain(db *sql.DB, domain string, live bool) {
 	updateSQL := `UPDATE domains SET live = ?, last_seen = ? WHERE domain = ?`
 	statement, err := db.Prepare(updateSQL)
 	if err != nil {
@@ -232,5 +264,39 @@ func updateDomain(db *sql.DB, domain string, live bool) {
 	_, err = statement.Exec(live, now, domain)
 	if err != nil {
 		log.Fatalln(err.Error())
+	}
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func sendToSlack(webhookURL string, message string) {
+	// Create JSON payload
+	payload := map[string]string{
+		"text": message,
+	}
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("Error creating JSON:", err)
+		return
+	}
+
+	// Send HTTP POST request
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		fmt.Println("Error sending to Slack:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error response from Slack:", resp.Status)
 	}
 }
