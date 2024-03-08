@@ -36,6 +36,13 @@ func main() {
 	}
 	db, _ := sql.Open("sqlite3", "./easyeasm.db")
 
+	var newActiveDomains = []string{}
+	var newLiveDomains = []string{}
+	var deprecatedActiveDomains = []string{}
+	var oldActiveDomains = getActiveDomains(db)
+	var deprecatedLiveDomains = []string{}
+	var oldLiveDomains = getLiveDomains(db)
+
 	// check for previous run file
 	if _, err := os.Stat("EasyEASM.csv"); err == nil {
 		fmt.Println("Found data from previous run!")
@@ -43,15 +50,10 @@ func main() {
 		if e != nil {
 			panic(e)
 		}
-		var domains = getActiveDomains(db)
-		fmt.Println("Active domains from previous run: ", len(domains))
+		fmt.Println("Active domains from previous run: ", oldActiveDomains)
 	} else {
 		fmt.Println("No previous run data found")
 	}
-	var newActiveDomains = []string{}
-	var newLiveDomains = []string{}
-	var deprecatedActiveDomains = []string{}
-	var deprecatedLiveDomains = []string{}
 
 	// create a PassiveRunner instance
 	Runner := passive.PassiveRunner{
@@ -71,16 +73,15 @@ func main() {
 	for _, domain := range Runner.Subdomains {
 		if !domainExists(db, domain) {
 			insertDomain(db, domain)
-			newActiveDomains = append(newActiveDomains, domain)
 		} else if !domainIsActive(db, domain) {
 			updateActiveDomain(db, domain, true)
-			newActiveDomains = append(newActiveDomains, domain)
 		}
+		newActiveDomains = append(newActiveDomains, domain)
 	}
 
-	oldActiveDomains := getActiveDomains(db)
 	for _, domain := range oldActiveDomains {
 		if !contains(newActiveDomains, domain) {
+			fmt.Println("Deprecated active domain: ", domain)
 			deprecatedActiveDomains = append(deprecatedActiveDomains, domain)
 			updateActiveDomain(db, domain, false)
 		}
@@ -92,20 +93,20 @@ func main() {
 
 		// run Httpx to check live domains
 		Runner.RunHttpx()
+		fmt.Println("Live subdomain hosts: ", Runner.Subdomains)
 		for _, domain := range Runner.Subdomains {
 			if !domainExists(db, domain) {
 				insertDomain(db, domain)
-				newLiveDomains = append(newLiveDomains, domain)
 			}
 			if !domainIsLive(db, domain) {
 				updateLiveDomain(db, domain, true)
-				newLiveDomains = append(newLiveDomains, domain)
 			}
+			newLiveDomains = append(newLiveDomains, domain)
 		}
 
-		oldLiveDomains := getLiveDomains(db)
 		for _, domain := range oldLiveDomains {
 			if !contains(newLiveDomains, domain) {
+				fmt.Println("Deprecated live domain: ", domain)
 				deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
 				updateLiveDomain(db, domain, false)
 			}
@@ -139,16 +140,15 @@ func main() {
 		for _, domain := range ActiveRunner.Subdomains {
 			if !domainExists(db, domain) {
 				insertDomain(db, domain)
-				newLiveDomains = append(newLiveDomains, domain)
 			}
 			if !domainIsLive(db, domain) {
 				updateLiveDomain(db, domain, true)
-				newLiveDomains = append(newLiveDomains, domain)
 			}
+			newLiveDomains = append(newLiveDomains, domain)
 		}
-		oldLiveDomains := getLiveDomains(db)
 		for _, domain := range oldLiveDomains {
 			if !contains(newLiveDomains, domain) {
+				fmt.Println("Deprecated live domain: ", domain)
 				deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
 				updateLiveDomain(db, domain, false)
 			}
@@ -164,6 +164,9 @@ func main() {
 }
 
 func notifyDomains(newActiveDomains []string, newLiveDomains []string, deprecatedActiveDomains []string, deprecatedLiveDomains []string, slackWebhook string) {
+	if !strings.Contains(slackWebhook, "https") {
+		return
+	}
 	if len(newActiveDomains) > 0 {
 		sendToSlack(slackWebhook, fmt.Sprintf("New active subdomain records: %v", newActiveDomains))
 	}
@@ -227,10 +230,7 @@ func domainExists(db *sql.DB, domain string) bool {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	if rows.Next() {
-		return true
-	}
-	return false
+	return rows.Next()
 }
 
 func domainIsLive(db *sql.DB, domain string) bool {
@@ -239,10 +239,7 @@ func domainIsLive(db *sql.DB, domain string) bool {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	if rows.Next() {
-		return true
-	}
-	return false
+	return rows.Next()
 }
 
 func domainIsActive(db *sql.DB, domain string) bool {
@@ -251,10 +248,7 @@ func domainIsActive(db *sql.DB, domain string) bool {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	if rows.Next() {
-		return true
-	}
-	return false
+	return rows.Next()
 }
 
 func getActiveDomains(db *sql.DB) []string {
