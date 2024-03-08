@@ -37,10 +37,8 @@ func main() {
 	db, _ := sql.Open("sqlite3", "./easyeasm.db")
 
 	// check for previous run file
-	var prevRun bool
 	if _, err := os.Stat("EasyEASM.csv"); err == nil {
 		fmt.Println("Found data from previous run!")
-		prevRun = true
 		e := os.Rename("EasyEASM.csv", "old_EasyEASM.csv")
 		if e != nil {
 			panic(e)
@@ -49,9 +47,11 @@ func main() {
 		fmt.Println("Active domains from previous run: ", len(domains))
 	} else {
 		fmt.Println("No previous run data found")
-		prevRun = false
 	}
-	var newDomains = []string{}
+	var newActiveDomains = []string{}
+	var newLiveDomains = []string{}
+	var deprecatedActiveDomains = []string{}
+	var deprecatedLiveDomains = []string{}
 
 	// create a PassiveRunner instance
 	Runner := passive.PassiveRunner{
@@ -71,9 +71,19 @@ func main() {
 	for _, domain := range Runner.Subdomains {
 		if !domainExists(db, domain) {
 			insertDomain(db, domain)
-			newDomains = append(newDomains, domain)
+			newActiveDomains = append(newActiveDomains, domain)
+		} else if !domainIsActive(db, domain) {
+			updateActiveDomain(db, domain, true)
+			newActiveDomains = append(newActiveDomains, domain)
 		}
-		updateActiveDomain(db, domain, true)
+	}
+
+	oldActiveDomains := getActiveDomains(db)
+	for _, domain := range oldActiveDomains {
+		if !contains(newActiveDomains, domain) {
+			deprecatedActiveDomains = append(deprecatedActiveDomains, domain)
+			updateActiveDomain(db, domain, false)
+		}
 	}
 
 	// check the run type specified in the config and perform actions accordingly
@@ -85,25 +95,24 @@ func main() {
 		for _, domain := range Runner.Subdomains {
 			if !domainExists(db, domain) {
 				insertDomain(db, domain)
-				newDomains = append(newDomains, domain)
+				newLiveDomains = append(newLiveDomains, domain)
 			}
-			updateLiveDomain(db, domain, true)
+			if !domainIsLive(db, domain) {
+				updateLiveDomain(db, domain, true)
+				newLiveDomains = append(newLiveDomains, domain)
+			}
 		}
 
-		// notify about new domains
-		if len(newDomains) > 0 {
-			if strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
-				sendToSlack(cfg.RunConfig.SlackWebhook, fmt.Sprintf("New domains discovered: %v", newDomains))
-				// utils.NotifyNewDomainsSlack(newDomains, cfg.RunConfig.SlackWebhook)
-				os.Remove("old_EasyEASM.csv")
+		oldLiveDomains := getLiveDomains(db)
+		for _, domain := range oldLiveDomains {
+			if !contains(newLiveDomains, domain) {
+				deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
+				updateLiveDomain(db, domain, false)
 			}
-			if strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
-				utils.NotifyNewDomainsDiscord(Runner.Subdomains, cfg.RunConfig.DiscordWebhook)
-				os.Remove("old_EasyEASM.csv")
-			}
-		} else {
-			fmt.Println("No new domains found")
 		}
+
+		notifyDomains(newActiveDomains, newLiveDomains, deprecatedActiveDomains, deprecatedLiveDomains, cfg.RunConfig.SlackWebhook)
+
 	} else if strings.ToLower(cfg.RunConfig.RunType) == "complete" {
 		// complete run: active enumeration
 
@@ -127,20 +136,46 @@ func main() {
 		fmt.Println(ActiveRunner.Subdomains)
 		fmt.Println("Checking which domains are live and generating assets csv...")
 		ActiveRunner.RunHttpx()
-
-		// notify about new domains if prevRun is true
-		if prevRun && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
-			utils.NotifyNewDomainsSlack(ActiveRunner.Subdomains, cfg.RunConfig.SlackWebhook)
-			os.Remove("old_EasyEASM.csv")
-		} else if prevRun && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
-			utils.NotifyNewDomainsDiscord(ActiveRunner.Subdomains, cfg.RunConfig.DiscordWebhook)
-			os.Remove("old_EasyEASM.csv")
+		for _, domain := range ActiveRunner.Subdomains {
+			if !domainExists(db, domain) {
+				insertDomain(db, domain)
+				newLiveDomains = append(newLiveDomains, domain)
+			}
+			if !domainIsLive(db, domain) {
+				updateLiveDomain(db, domain, true)
+				newLiveDomains = append(newLiveDomains, domain)
+			}
 		}
+		oldLiveDomains := getLiveDomains(db)
+		for _, domain := range oldLiveDomains {
+			if !contains(newLiveDomains, domain) {
+				deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
+				updateLiveDomain(db, domain, false)
+			}
+		}
+
+		// notify about new domains
+		notifyDomains(newActiveDomains, newLiveDomains, deprecatedActiveDomains, deprecatedLiveDomains, cfg.RunConfig.SlackWebhook)
 	} else {
 		// invalid run mode specified
 		panic("Please pick a valid run mode and add it to your config.yml file! You can set runType to either 'fast' or 'complete'")
 	}
 	db.Close() // Close the SQLite File
+}
+
+func notifyDomains(newActiveDomains []string, newLiveDomains []string, deprecatedActiveDomains []string, deprecatedLiveDomains []string, slackWebhook string) {
+	if len(newActiveDomains) > 0 {
+		sendToSlack(slackWebhook, fmt.Sprintf("New active subdomain records: %v", newActiveDomains))
+	}
+	if len(newLiveDomains) > 0 {
+		sendToSlack(slackWebhook, fmt.Sprintf("New live subdomain hosts: %v", newLiveDomains))
+	}
+	if len(deprecatedActiveDomains) > 0 {
+		sendToSlack(slackWebhook, fmt.Sprintf("Deprecated subdomain records: %v", deprecatedActiveDomains))
+	}
+	if len(deprecatedLiveDomains) > 0 {
+		sendToSlack(slackWebhook, fmt.Sprintf("Deprecated live subdomain hosts: %v", deprecatedLiveDomains))
+	}
 }
 
 func setupDB() {
@@ -188,6 +223,30 @@ func getDomains(db *sql.DB) []string {
 
 func domainExists(db *sql.DB, domain string) bool {
 	rows, err := db.Query("SELECT domain FROM domains WHERE domain = ?", domain)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return true
+	}
+	return false
+}
+
+func domainIsLive(db *sql.DB, domain string) bool {
+	rows, err := db.Query("SELECT domain FROM domains WHERE domain = ? AND live = true", domain)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return true
+	}
+	return false
+}
+
+func domainIsActive(db *sql.DB, domain string) bool {
+	rows, err := db.Query("SELECT domain FROM domains WHERE domain = ? AND active = true", domain)
 	if err != nil {
 		log.Fatal(err)
 	}
