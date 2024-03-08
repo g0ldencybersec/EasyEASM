@@ -84,6 +84,8 @@ func main() {
 			fmt.Println("Deprecated active domain: ", domain)
 			deprecatedActiveDomains = append(deprecatedActiveDomains, domain)
 			updateActiveDomain(db, domain, false)
+		} else {
+			newActiveDomains = remove(newActiveDomains, domain)
 		}
 	}
 
@@ -109,6 +111,8 @@ func main() {
 				fmt.Println("Deprecated live domain: ", domain)
 				deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
 				updateLiveDomain(db, domain, false)
+			} else {
+				newLiveDomains = remove(newLiveDomains, domain)
 			}
 		}
 
@@ -151,6 +155,8 @@ func main() {
 				fmt.Println("Deprecated live domain: ", domain)
 				deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
 				updateLiveDomain(db, domain, false)
+			} else {
+				newLiveDomains = remove(newLiveDomains, domain)
 			}
 		}
 
@@ -327,6 +333,15 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func remove[T comparable](l []T, item T) []T {
+	for i, other := range l {
+		if other == item {
+			return append(l[:i], l[i+1:]...)
+		}
+	}
+	return l
 }
 
 func sendToSlack(webhookURL string, message string) {
