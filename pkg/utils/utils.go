@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func RemoveDuplicates(slice []string) []string {
@@ -192,6 +194,7 @@ func InstallTools() {
 		"httpx":     "github.com/projectdiscovery/httpx/cmd/httpx@latest",
 		"oam_subs":  "github.com/owasp-amass/oam-tools/cmd/oam_subs@master",
 		"subfinder": "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
+		"nuclei":    "go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
 	} {
 		if !checkTool(name) {
 			installGoTool(name, path)
@@ -222,4 +225,26 @@ func installGoTool(name string, path string) {
 	}
 
 	log.Printf("Successfully installed the package: %s", packagePath)
+}
+
+func GetInput(prompt string, r *bufio.Reader) (string, error) {
+	fmt.Print(prompt)
+	input, err := r.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
+
+	return strings.TrimSpace(input), err
+}
+
+func CheckJq() {
+	//check if jq is installed, if not, abort the scan
+	cmd := exec.Command("jq", "--version")
+	err := cmd.Run()
+	if err != nil {
+		print("Jq is not installed, nuclei scan can't be run.\n\n")
+		panic(err)
+	} else {
+		return
+	}
 }
