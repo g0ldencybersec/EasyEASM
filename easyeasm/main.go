@@ -8,6 +8,7 @@ import (
 	"github.com/g0ldencybersec/EasyEASM/pkg/active"
 	"github.com/g0ldencybersec/EasyEASM/pkg/configparser"
 	"github.com/g0ldencybersec/EasyEASM/pkg/passive"
+	"github.com/g0ldencybersec/EasyEASM/pkg/passive/flags"
 	"github.com/g0ldencybersec/EasyEASM/pkg/utils"
 )
 
@@ -19,8 +20,11 @@ func main() {
 	banner := "\x1b[36m****************\n\nEASY EASM\n\n***************\x1b[0m\n"
 	fmt.Println(banner)
 
+	//check if flag '-i' is provided, if yes return the interactive parameter
+	flag := flags.ParsingFlags()
+
 	// parse the configuration file
-	cfg := configparser.ParseConfig()
+	cfg := configparser.ParseConfig(flag)
 
 	// check for previous run file
 	var prevRun bool
