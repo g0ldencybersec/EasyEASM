@@ -194,7 +194,7 @@ func InstallTools() {
 		"httpx":     "github.com/projectdiscovery/httpx/cmd/httpx@latest",
 		"oam_subs":  "github.com/owasp-amass/oam-tools/cmd/oam_subs@master",
 		"subfinder": "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
-		"nuclei":    "go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
+		"nuclei":    "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
 	} {
 		if !checkTool(name) {
 			installGoTool(name, path)
