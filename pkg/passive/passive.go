@@ -6,6 +6,7 @@ import (
 
 	"github.com/g0ldencybersec/EasyEASM/pkg/passive/amass"
 	"github.com/g0ldencybersec/EasyEASM/pkg/passive/httpx"
+	"github.com/g0ldencybersec/EasyEASM/pkg/passive/nuclei"
 	"github.com/g0ldencybersec/EasyEASM/pkg/passive/subfinder"
 )
 
@@ -57,4 +58,8 @@ func (r *PassiveRunner) RunPassiveEnum() []string {
 
 func (r *PassiveRunner) RunHttpx() {
 	httpx.RunHttpx(r.Subdomains)
+}
+
+func (r *PassiveRunner) RunNuclei(flags string) {
+	nuclei.RunNuclei(r.Subdomains, flags)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strings"
@@ -20,7 +21,7 @@ func main() {
 	banner := "\x1b[36m****************\n\nEASY EASM\n\n***************\x1b[0m\n"
 	fmt.Println(banner)
 
-	//check if flag '-i' is provided, if yes return the interactive parameter
+	//check if flag '-i' is provided when running the tool, if yes return the interactive parameter
 	flag := flags.ParsingFlags()
 
 	// parse the configuration file
@@ -62,6 +63,9 @@ func main() {
 
 		// run Httpx to check live domains
 		Runner.RunHttpx()
+
+		//start the nuclei func
+		PromptOptionsNuclei(Runner, cfg, flag)
 
 		// notify about new domains if prevRun is true
 		if prevRun && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
@@ -105,6 +109,9 @@ func main() {
 		fmt.Println("Checking which domains are live and generating assets csv...")
 		ActiveRunner.RunHttpx()
 
+		//nuclei function start
+		PromptOptionsNuclei(PassiveRunner, cfg, flag)
+
 		// notify about new domains if prevRun is true
 		if prevRun && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
 			utils.NotifyNewDomainsSlack(ActiveRunner.Subdomains, cfg.RunConfig.SlackWebhook)
@@ -116,5 +123,77 @@ func main() {
 	} else {
 		// invalid run mode specified
 		panic("Please pick a valid run mode and add it to your config.yml file! You can set runType to either 'fast' or 'complete'")
+	}
+}
+
+// func is here and not in nuclei path to avoid aving to modify the current structure of the pkg (import cycle with passive)
+func PromptOptionsNuclei(r passive.PassiveRunner, cfg configparser.Config, flags string) {
+
+	//check if interactive mod is active
+	if flags == "interactive" {
+		//vuln scan starting
+		reader := bufio.NewReader(os.Stdin)
+		opt, _ := utils.GetInput("Do you want to run the vulnerability scanner? y/n\n", reader)
+		switch opt {
+		case "y":
+			fmt.Println("Running Nuclei")
+
+			//var prevRunNuclei bool
+			if _, err := os.Stat("EasyEASM.json"); err == nil {
+				fmt.Println("Found data from previous Nuclei scan!")
+				//prevRunNuclei = true
+				e := os.Rename("EasyEASM.json", "old_EasyEASM.json")
+				if e != nil {
+					panic(e)
+				}
+			} else {
+				fmt.Println("No previous Nuclei scan data found")
+				//prevRunNuclei = false
+			}
+			r.RunNuclei(flags)
+
+			//notify discord and slack if present
+			// if prevRunNuclei && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
+			// 	utils.NotifyVulnSlack(cfg.RunConfig.SlackWebhook)
+			// 	os.Remove("old_EasyEASM.json")
+			// } else if prevRunNuclei && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
+			// 	utils.NotifyVulnDiscord(cfg.RunConfig.DiscordWebhook)
+			// 	os.Remove("old_EasyEASM.json")
+			// }
+
+		case "n":
+			return
+
+		default:
+			//invalid option chosen at runtime
+			fmt.Println("Choose a valid option")
+			PromptOptionsNuclei(r, cfg, flags)
+		}
+	} else {
+		//std run without any console prompt
+		fmt.Println("Running Nuclei")
+
+		//var prevRunNuclei bool
+		if _, err := os.Stat("EasyEASM.json"); err == nil {
+			fmt.Println("Found data from previous Nuclei scan!")
+			//prevRunNuclei = true
+			e := os.Rename("EasyEASM.json", "old_EasyEASM.json")
+			if e != nil {
+				panic(e)
+			}
+		} else {
+			fmt.Println("No previous Nuclei scan data found")
+			//prevRunNuclei = false
+		}
+		r.RunNuclei(flags)
+
+		// if prevRunNuclei && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
+		// 	utils.NotifyVulnSlack(cfg.RunConfig.SlackWebhook)
+		// 	os.Remove("old_EasyEASM.json")
+		// } else if prevRunNuclei && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
+		// 	utils.NotifyVulnDiscord(cfg.RunConfig.DiscordWebhook)
+		// 	os.Remove("old_EasyEASM.json")
+		// }
+		return
 	}
 }
