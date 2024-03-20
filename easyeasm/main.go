@@ -126,7 +126,7 @@ func main() {
 	}
 }
 
-// func is here and not in nuclei path to avoid aving to modify the current structure of the pkg (import cycle with passive)
+// func is here and not in nuclei path to avoid having to modify the current structure of the pkg (import cycle with passive)
 func PromptOptionsNuclei(r passive.PassiveRunner, cfg configparser.Config, flags string) {
 
 	//check if interactive mod is active
@@ -138,28 +138,28 @@ func PromptOptionsNuclei(r passive.PassiveRunner, cfg configparser.Config, flags
 		case "y":
 			fmt.Println("Running Nuclei")
 
-			//var prevRunNuclei bool
+			var prevRunNuclei bool
 			if _, err := os.Stat("EasyEASM.json"); err == nil {
 				fmt.Println("Found data from previous Nuclei scan!")
-				//prevRunNuclei = true
+				prevRunNuclei = true
 				e := os.Rename("EasyEASM.json", "old_EasyEASM.json")
 				if e != nil {
 					panic(e)
 				}
 			} else {
 				fmt.Println("No previous Nuclei scan data found")
-				//prevRunNuclei = false
+				prevRunNuclei = false
 			}
 			r.RunNuclei(flags)
 
 			//notify discord and slack if present
-			// if prevRunNuclei && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
-			// 	utils.NotifyVulnSlack(cfg.RunConfig.SlackWebhook)
-			// 	os.Remove("old_EasyEASM.json")
-			// } else if prevRunNuclei && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
-			// 	utils.NotifyVulnDiscord(cfg.RunConfig.DiscordWebhook)
-			// 	os.Remove("old_EasyEASM.json")
-			// }
+			if prevRunNuclei && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
+				utils.NotifyVulnSlack(cfg.RunConfig.SlackWebhook)
+				os.Remove("old_EasyEASM.json")
+			} else if prevRunNuclei && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
+				utils.NotifyVulnDiscord(cfg.RunConfig.DiscordWebhook)
+				os.Remove("old_EasyEASM.json")
+			}
 
 		case "n":
 			return
@@ -173,27 +173,28 @@ func PromptOptionsNuclei(r passive.PassiveRunner, cfg configparser.Config, flags
 		//std run without any console prompt
 		fmt.Println("Running Nuclei")
 
-		//var prevRunNuclei bool
+		var prevRunNuclei bool
 		if _, err := os.Stat("EasyEASM.json"); err == nil {
 			fmt.Println("Found data from previous Nuclei scan!")
-			//prevRunNuclei = true
+			prevRunNuclei = true
 			e := os.Rename("EasyEASM.json", "old_EasyEASM.json")
 			if e != nil {
 				panic(e)
 			}
 		} else {
 			fmt.Println("No previous Nuclei scan data found")
-			//prevRunNuclei = false
+			prevRunNuclei = false
 		}
 		r.RunNuclei(flags)
 
-		// if prevRunNuclei && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
-		// 	utils.NotifyVulnSlack(cfg.RunConfig.SlackWebhook)
-		// 	os.Remove("old_EasyEASM.json")
-		// } else if prevRunNuclei && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
-		// 	utils.NotifyVulnDiscord(cfg.RunConfig.DiscordWebhook)
-		// 	os.Remove("old_EasyEASM.json")
-		// }
+		//notify discord and slack if presents
+		if prevRunNuclei && strings.Contains(cfg.RunConfig.SlackWebhook, "https") {
+			utils.NotifyVulnSlack(cfg.RunConfig.SlackWebhook)
+			os.Remove("old_EasyEASM.json")
+		} else if prevRunNuclei && strings.Contains(cfg.RunConfig.DiscordWebhook, "https") {
+			utils.NotifyVulnDiscord(cfg.RunConfig.DiscordWebhook)
+			os.Remove("old_EasyEASM.json")
+		}
 		return
 	}
 }

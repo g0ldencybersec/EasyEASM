@@ -248,3 +248,103 @@ func CheckJq() {
 		return
 	}
 }
+
+func NotifyVulnDiscord(discordWebhook string) {
+	// Used to parse the nuclei file and notify about vuln
+	// notification are based on: host, name of the vulnerability and severity
+
+	// Open the JSON file
+	inputFile, err := os.Open("EasyEASM.json")
+	if err != nil {
+		fmt.Println("Error opening JSON file")
+		panic(err)
+	}
+	defer inputFile.Close()
+
+	//structured json of the nuclei output, used only here so declared inside
+	type Info struct {
+		Name     string `json:"name"`
+		Severity string `json:"severity"`
+	}
+
+	type Data struct {
+		Host   string `json:"host"`
+		Inform Info   `json:"info"`
+	}
+
+	var jsonPayload []Data
+	var vulnerability Data
+	decoder := json.NewDecoder(inputFile)
+
+	//decode the json output from nuclei
+	for decoder.More() {
+		err := decoder.Decode(&vulnerability)
+		if err != nil {
+			panic(err)
+		}
+
+		//append the parametres for each line of the JSON
+		jsonPayload = append(jsonPayload, vulnerability)
+	}
+
+	//bulking toghether the different vuln to have a single notification
+	var message string
+	message = "List of discovered vulnerabilities:\n"
+	for _, v := range jsonPayload {
+		newMessage := fmt.Sprintf("Host: %v, Name: %v, Severity: %v\n", v.Host, v.Inform.Name, v.Inform.Severity)
+		message += newMessage
+	}
+
+	//sending the message to the provided webhook
+	sendToDiscord(discordWebhook, message)
+}
+
+func NotifyVulnSlack(slackWebhook string) {
+	// Used to parse the nuclei file and notify about vuln
+	// notification are based on: host, name of the vulnerability and severity
+
+	// Open the JSON file
+	inputFile, err := os.Open("EasyEASM.json")
+	if err != nil {
+		fmt.Println("Error opening JSON file")
+		panic(err)
+	}
+	defer inputFile.Close()
+
+	//structured json of the nuclei output, used only here so declared inside
+	type Info struct {
+		Name     string `json:"name"`
+		Severity string `json:"severity"`
+	}
+
+	type Data struct {
+		Host   string `json:"host"`
+		Inform Info   `json:"info"`
+	}
+
+	var jsonPayload []Data
+	var vulnerability Data
+	decoder := json.NewDecoder(inputFile)
+
+	//decode the json output from nuclei
+	for decoder.More() {
+		err := decoder.Decode(&vulnerability)
+		if err != nil {
+			panic(err)
+		}
+
+		//append the parametres for each line of the JSON
+		jsonPayload = append(jsonPayload, vulnerability)
+	}
+
+	//bulking toghether the different vuln to have a single notification
+	var message string
+	message = "List of discovered vulnerabilities:\n"
+	for _, v := range jsonPayload {
+		newMessage := fmt.Sprintf("Host: %v, Name: %v, Severity: %v\n", v.Host, v.Inform.Name, v.Inform.Severity)
+		message += newMessage
+	}
+
+	//sending the message to the provided webhook
+	sendToDiscord(slackWebhook, message)
+}
