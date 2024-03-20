@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
@@ -9,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 )
 
 func RemoveDuplicates(slice []string) []string {
@@ -192,6 +195,7 @@ func InstallTools() {
 		"httpx":     "github.com/projectdiscovery/httpx/cmd/httpx@latest",
 		"oam_subs":  "github.com/owasp-amass/oam-tools/cmd/oam_subs@master",
 		"subfinder": "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
+		"nuclei":    "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
 	} {
 		if !checkTool(name) {
 			installGoTool(name, path)
@@ -222,4 +226,137 @@ func installGoTool(name string, path string) {
 	}
 
 	log.Printf("Successfully installed the package: %s", packagePath)
+}
+
+func GetInput(prompt string, r *bufio.Reader) (string, error) {
+	fmt.Print(prompt)
+	input, err := r.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
+
+	return strings.TrimSpace(input), err
+}
+
+func CheckJq() {
+	//check if jq is installed, if not, abort the scan
+	cmd := exec.Command("jq", "--version")
+	err := cmd.Run()
+	if err != nil {
+		print("Jq is not installed, nuclei scan can't be run.\n\n")
+		panic(err)
+	} else {
+		return
+	}
+}
+
+func NotifyVulnDiscord(discordWebhook string) {
+	// Used to parse the nuclei file and notify about vuln
+	// notification contains: host, name of the vulnerability, severity
+
+	// Open the JSON file
+	inputFile, err := os.Open("EasyEASM.json")
+	if err != nil {
+		fmt.Println("Error opening JSON file")
+		panic(err)
+	}
+	defer inputFile.Close()
+
+	//structured json of the nuclei output, used only here so declared inside
+	type Info struct {
+		Name     string `json:"name"`
+		Severity string `json:"severity"`
+	}
+
+	type Data struct {
+		Host   string `json:"host"`
+		Inform Info   `json:"info"`
+	}
+
+	var jsonPayload []Data
+	var vulnerability Data
+	decoder := json.NewDecoder(inputFile)
+
+	//decode the json output from nuclei
+	for decoder.More() {
+		err := decoder.Decode(&vulnerability)
+		if err != nil {
+			panic(err)
+		}
+
+		//append the parametres for each line of the JSON
+		jsonPayload = append(jsonPayload, vulnerability)
+	}
+
+	//bulking toghether the different vuln to have a single notification
+	var message string
+	message = "List of discovered vulnerabilities:\n"
+	for _, v := range jsonPayload {
+		newMessage := fmt.Sprintf("Host: %v, Name: %v, Severity: %v\n", v.Host, v.Inform.Name, v.Inform.Severity)
+		message += newMessage
+	}
+
+	//sending the message to the provided webhook
+	sendToDiscord(discordWebhook, message)
+}
+
+func NotifyVulnSlack(slackWebhook string) {
+	// Used to parse the nuclei file and notify about vuln
+	// notification are based on: host, name of the vulnerability and severity
+
+	// Open the JSON file
+	inputFile, err := os.Open("EasyEASM.json")
+	if err != nil {
+		fmt.Println("Error opening JSON file")
+		panic(err)
+	}
+	defer inputFile.Close()
+
+	//structured json of the nuclei output, used only here so declared inside
+	type Info struct {
+		Name     string `json:"name"`
+		Severity string `json:"severity"`
+	}
+
+	type Data struct {
+		Host   string `json:"host"`
+		Inform Info   `json:"info"`
+	}
+
+	var jsonPayload []Data
+	var vulnerability Data
+	decoder := json.NewDecoder(inputFile)
+
+	//decode the json output from nuclei
+	for decoder.More() {
+		err := decoder.Decode(&vulnerability)
+		if err != nil {
+			panic(err)
+		}
+
+		//append the parametres for each line of the JSON
+		jsonPayload = append(jsonPayload, vulnerability)
+	}
+
+	//bulking toghether the different vuln to have a single notification
+	//notify the host, name and severity of the vulnerability
+	var message string
+	message = "List of discovered vulnerabilities:\n"
+	for _, v := range jsonPayload {
+		newMessage := fmt.Sprintf("Host: %v, Name: %v, Severity: %v\n", v.Host, v.Inform.Name, v.Inform.Severity)
+		message += newMessage
+	}
+
+	//sending the message to the provided webhook
+	sendToDiscord(slackWebhook, message)
+}
+
+func ValidDomain(domain string) bool {
+	//check if the string provided is a valid domain - pattern can be made modified to be more strict
+	pattern := `^(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*(?:[A-Za-z0-9\-]+\.)+[A-Za-z]{2,}$`
+	regex := regexp.MustCompile(pattern)
+
+	//retrun a boolean to make the check quick in the configparser
+	return regex.MatchString(domain)
+
 }
