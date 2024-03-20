@@ -34,8 +34,8 @@ func RunDnsx(seedDomains []string, wordlist string, threads int) []string {
 
 	}
 
-	fmt.Println("ACTIVE RESULTS")
-	fmt.Println(results)
+	fmt.Println("Total active subdomain results: ", len(results))
+	// fmt.Println(results)
 	os.Remove("tempDomains.txt")
 	return results
 }
