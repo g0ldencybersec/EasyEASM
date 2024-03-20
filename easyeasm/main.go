@@ -22,7 +22,7 @@ func main() {
 	utils.InstallTools()
 
 	// print a banner
-	banner := "\x1b[36m****************\n\nEASY EASM\n\n***************\x1b[0m\n"
+	banner := "****************\n\nEASY EASM\n\n***************\n"
 	fmt.Println(banner)
 
 	// parse the configuration file
@@ -32,7 +32,6 @@ func main() {
 	if _, err := os.Stat("easyeasm.db"); err == nil {
 	} else {
 		setupDB()
-		// db, _ := sql.Open("sqlite3", "./easyeasm.db")
 	}
 	db, _ := sql.Open("sqlite3", "./easyeasm.db")
 
@@ -50,7 +49,7 @@ func main() {
 		if e != nil {
 			panic(e)
 		}
-		fmt.Println("Active domains from previous run: ", oldActiveDomains)
+		fmt.Println("Active DNS subdomains from previous run: ", len(oldActiveDomains))
 	} else {
 		fmt.Println("No previous run data found")
 	}
@@ -67,9 +66,8 @@ func main() {
 	Runner.Subdomains = utils.RemoveDuplicates(passiveResults)
 	Runner.Results = len(Runner.Subdomains)
 
-	fmt.Printf("\x1b[31mFound %d subdomains\n\n\x1b[0m", Runner.Results)
+	fmt.Printf("Active DNS subdomains found this run: %d\n", Runner.Results)
 	fmt.Println(Runner.Subdomains)
-	fmt.Println("Checking which domains are live and generating assets csv...")
 	for _, domain := range Runner.Subdomains {
 		if !domainExists(db, domain) {
 			insertDomain(db, domain)
@@ -81,7 +79,7 @@ func main() {
 
 	for _, domain := range oldActiveDomains {
 		if !contains(newActiveDomains, domain) {
-			fmt.Println("Deprecated active domain: ", domain)
+			fmt.Println("Deprecated DNS subdomain: ", domain)
 			deprecatedActiveDomains = append(deprecatedActiveDomains, domain)
 			updateActiveDomain(db, domain, false)
 		} else {
@@ -89,16 +87,22 @@ func main() {
 		}
 	}
 
+	fmt.Println("Number of new active DNS Subdomains: ", len(newActiveDomains))
+
+	fmt.Println("Checking which subdomains are live.")
 	// check the run type specified in the config and perform actions accordingly
 	if strings.ToLower(cfg.RunConfig.RunType) == "fast" {
 		// fast run: passive enumeration only
 
 		// run Httpx to check live domains
 		Runner.RunHttpx()
+		fmt.Println("Number of live subdomain hosts: ", len(Runner.Subdomains))
+
 		fmt.Println("Live subdomain hosts: ", Runner.Subdomains)
 		for _, domain := range Runner.Subdomains {
 			if !domainExists(db, domain) {
 				insertDomain(db, domain)
+				updateLiveDomain(db, domain, true)
 			}
 			if !domainIsLive(db, domain) {
 				updateLiveDomain(db, domain, true)
@@ -108,13 +112,14 @@ func main() {
 
 		for _, domain := range oldLiveDomains {
 			if !contains(newLiveDomains, domain) {
-				fmt.Println("Deprecated live domain: ", domain)
+				fmt.Println("Deprecated live subdomain: ", domain)
 				deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
 				updateLiveDomain(db, domain, false)
 			} else {
 				newLiveDomains = remove(newLiveDomains, domain)
 			}
 		}
+		fmt.Println("Number of new live subdomain hosts: ", len(newLiveDomains))
 
 		notifyDomains(newActiveDomains, newLiveDomains, deprecatedActiveDomains, deprecatedLiveDomains, cfg.RunConfig.SlackWebhook)
 
@@ -137,7 +142,7 @@ func main() {
 		ActiveRunner.Results = len(ActiveRunner.Subdomains)
 
 		// httpx scan
-		fmt.Printf("Found %d subdomains: ", ActiveRunner.Results)
+		fmt.Printf("Found %d live subdomains: ", ActiveRunner.Results)
 		fmt.Println(ActiveRunner.Subdomains)
 		fmt.Println("Checking which domains are live and generating assets csv...")
 		ActiveRunner.RunHttpx()
@@ -159,6 +164,8 @@ func main() {
 				newLiveDomains = remove(newLiveDomains, domain)
 			}
 		}
+
+		fmt.Println("Number of new live subdomain hosts: ", len(newLiveDomains))
 
 		// notify about new domains
 		notifyDomains(newActiveDomains, newLiveDomains, deprecatedActiveDomains, deprecatedLiveDomains, cfg.RunConfig.SlackWebhook)

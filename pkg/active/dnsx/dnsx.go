@@ -10,7 +10,7 @@ import (
 )
 
 func RunDnsx(seedDomains []string, wordlist string, threads int) []string {
-	fmt.Printf("Runing Bruteforce!")
+	fmt.Println("Running dnsx Brute force")
 	var results []string
 	for _, domain := range seedDomains {
 		if domain != "" {
