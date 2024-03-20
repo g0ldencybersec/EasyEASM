@@ -22,7 +22,7 @@ func main() {
 	utils.InstallTools()
 
 	// print a banner
-	banner := "****************\n\nEASY EASM\n\n***************\n"
+	banner := "-----------------------------\n      EASY EASM\n-----------------------------"
 	fmt.Println(banner)
 
 	// parse the configuration file
@@ -67,7 +67,7 @@ func main() {
 	Runner.Results = len(Runner.Subdomains)
 
 	fmt.Printf("Active DNS subdomains found this run: %d\n", Runner.Results)
-	fmt.Println(Runner.Subdomains)
+	// fmt.Println(Runner.Subdomains)
 	for _, domain := range Runner.Subdomains {
 		if !domainExists(db, domain) {
 			insertDomain(db, domain)
@@ -98,7 +98,7 @@ func main() {
 		Runner.RunHttpx()
 		fmt.Println("Number of live subdomain hosts: ", len(Runner.Subdomains))
 
-		fmt.Println("Live subdomain hosts: ", Runner.Subdomains)
+		// fmt.Println("Live subdomain hosts: ", Runner.Subdomains)
 		for _, domain := range Runner.Subdomains {
 			if !domainExists(db, domain) {
 				insertDomain(db, domain)
@@ -143,7 +143,7 @@ func main() {
 
 		// httpx scan
 		fmt.Printf("Found %d live subdomains: ", ActiveRunner.Results)
-		fmt.Println(ActiveRunner.Subdomains)
+		// fmt.Println(ActiveRunner.Subdomains)
 		fmt.Println("Checking which domains are live and generating assets csv...")
 		ActiveRunner.RunHttpx()
 		for _, domain := range ActiveRunner.Subdomains {
@@ -166,6 +166,7 @@ func main() {
 		}
 
 		fmt.Println("Number of new live subdomain hosts: ", len(newLiveDomains))
+		// fmt.Println(newLiveDomains)
 
 		// notify about new domains
 		notifyDomains(newActiveDomains, newLiveDomains, deprecatedActiveDomains, deprecatedLiveDomains, cfg.RunConfig.SlackWebhook)
@@ -174,6 +175,7 @@ func main() {
 		panic("Please pick a valid run mode and add it to your config.yml file! You can set runType to either 'fast' or 'complete'")
 	}
 	db.Close() // Close the SQLite File
+	fmt.Println("-----------------------------")
 }
 
 func notifyDomains(newActiveDomains []string, newLiveDomains []string, deprecatedActiveDomains []string, deprecatedLiveDomains []string, slackWebhook string) {

@@ -37,8 +37,8 @@ func RunAlterx(domains []string, threads int) []string {
 			results = append(results, domain)
 		}
 	}
-	fmt.Println("ALTERX RESULTS")
-	fmt.Println(results)
+	fmt.Println("ALTERX DOMAINS", len(results))
+	// fmt.Println(results)
 	os.Remove("tempDomains.txt")
 	os.Remove("alterxDomains.txt")
 
