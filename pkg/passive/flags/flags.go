@@ -12,7 +12,7 @@ func ParsingFlags() string {
 
 	//start the interactive mode with runtime config
 	if *interactive {
-		fmt.Println("flag read correctly")
+		fmt.Println("Interactive Mode selected")
 		return "interactive"
 	}
 

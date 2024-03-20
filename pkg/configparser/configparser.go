@@ -102,7 +102,7 @@ func PromptConfigChange(config Config) (cfg Config) {
 			log.Fatalf("error writing YAML file: %v", err)
 		}
 
-		fmt.Println("Slack Webhook added successfully")
+		fmt.Printf("Slack Webhook added successfully\n\n")
 		PromptConfigChange(config)
 
 	//add discord webhook at runtime
@@ -122,7 +122,7 @@ func PromptConfigChange(config Config) (cfg Config) {
 			log.Fatalf("error writing YAML file: %v", err)
 		}
 
-		fmt.Println("Slack Webhook added successfully")
+		fmt.Printf("Slack Webhook added successfully\n\n")
 		PromptConfigChange(config)
 
 	//change the configuration type
@@ -143,10 +143,11 @@ func PromptConfigChange(config Config) (cfg Config) {
 				log.Fatalf("error writing YAML file: %v", err)
 			}
 
-			fmt.Println("Config type setted correctly")
+			fmt.Printf("Config type setted correctly\n\n")
 			PromptConfigChange(config)
 		} else {
 			//restart the config if the type was invalid
+			fmt.Printf("Config type invalid, please choose fast or complete\n\n")
 			PromptConfigChange(config)
 		}
 
