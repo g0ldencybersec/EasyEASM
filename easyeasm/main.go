@@ -127,9 +127,10 @@ func main() {
 }
 
 // func is here and not in nuclei path to avoid having to modify the current structure of the pkg (import cycle with passive)
+// it can probably be adjusted to be make the main cleaner
 func PromptOptionsNuclei(r passive.PassiveRunner, cfg configparser.Config, flags string) {
 
-	//check if interactive mod is active
+	//check if interactive mod is active (flag -i)
 	if flags == "interactive" {
 		//vuln scan starting
 		reader := bufio.NewReader(os.Stdin)

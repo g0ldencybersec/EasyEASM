@@ -16,7 +16,7 @@ func ParsingFlags() string {
 		return "interactive"
 	}
 
-	// //enter the periodic mode, need to be implemented
+	// //enter the periodic mode NOT IMPLEMENTED YET
 	// if *periodic {
 	// 	panic("periodic scan still not implemented")
 	// }

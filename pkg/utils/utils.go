@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -251,7 +252,7 @@ func CheckJq() {
 
 func NotifyVulnDiscord(discordWebhook string) {
 	// Used to parse the nuclei file and notify about vuln
-	// notification are based on: host, name of the vulnerability and severity
+	// notification contains: host, name of the vulnerability, severity
 
 	// Open the JSON file
 	inputFile, err := os.Open("EasyEASM.json")
@@ -338,6 +339,7 @@ func NotifyVulnSlack(slackWebhook string) {
 	}
 
 	//bulking toghether the different vuln to have a single notification
+	//notify the host, name and severity of the vulnerability
 	var message string
 	message = "List of discovered vulnerabilities:\n"
 	for _, v := range jsonPayload {
@@ -347,4 +349,14 @@ func NotifyVulnSlack(slackWebhook string) {
 
 	//sending the message to the provided webhook
 	sendToDiscord(slackWebhook, message)
+}
+
+func ValidDomain(domain string) bool {
+	//check if the string provided is a valid domain - pattern can be made modified to be more strict
+	pattern := `^(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*(?:[A-Za-z0-9\-]+\.)+[A-Za-z]{2,}$`
+	regex := regexp.MustCompile(pattern)
+
+	//retrun a boolean to make the check quick in the configparser
+	return regex.MatchString(domain)
+
 }

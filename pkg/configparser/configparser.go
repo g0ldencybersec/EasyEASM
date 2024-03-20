@@ -62,21 +62,28 @@ func PromptConfigChange(config Config) (cfg Config) {
 	//add domains to the list
 	case "1":
 		opt, _ = utils.GetInput("Write the domain you would like to add\n", reader)
-		config.RunConfig.Domains = append(config.RunConfig.Domains, opt)
 
-		yamlData, err := yaml.Marshal(config)
-		if err != nil {
-			log.Fatalf("error marshalling YAML: %v", err)
+		//check if the domain is in a valid format (doesnt ensure that the domain exists)
+		if utils.ValidDomain(opt) {
+			config.RunConfig.Domains = append(config.RunConfig.Domains, opt)
+
+			yamlData, err := yaml.Marshal(config)
+			if err != nil {
+				log.Fatalf("error marshalling YAML: %v", err)
+			}
+
+			// Write modified data back to YAML file
+			err = os.WriteFile("config.yml", yamlData, 0644)
+			if err != nil {
+				log.Fatalf("error writing YAML file: %v", err)
+			}
+
+			fmt.Println("Domain added successfully")
+			PromptConfigChange(config)
+		} else {
+			fmt.Printf("Invalid Domain format\n\n")
+			PromptConfigChange(config)
 		}
-
-		// Write modified data back to YAML file
-		err = os.WriteFile("config.yml", yamlData, 0644)
-		if err != nil {
-			log.Fatalf("error writing YAML file: %v", err)
-		}
-
-		fmt.Println("Domain added successfully")
-		PromptConfigChange(config)
 
 	//add slack webhook at runtime
 	case "2":
