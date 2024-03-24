@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func RemoveDuplicates(slice []string) []string {
@@ -25,49 +29,15 @@ func RemoveDuplicates(slice []string) []string {
 }
 
 func NotifyNewDomainsSlack(newDomains []string, slackWebhook string) {
-	// Open the CSV file
-	inputFile, err := os.Open("old_EasyEASM.csv")
-	if err != nil {
-		panic(err)
-	}
-	defer inputFile.Close()
 
-	// Create a new CSV reader
-	reader := csv.NewReader(inputFile)
-
-	// The index of the column you want to extract
-	columnToExtract := 3
-
-	// Slice to hold the values from the specified column
-	var oldDomains []string
-
-	// Iterate through the records, extracting the value from the specified column
-	for {
-		record, err := reader.Read()
-		if err != nil {
-			if err == csv.ErrTrailingComma {
-				// Skip records with trailing commas
-				continue
-			} else if err.Error() == "EOF" {
-				// End of file
-				break
-			} else {
-				// Some other error
-				panic(err)
-			}
-		}
-
-		// Append the value from the specified column if the index is within bounds
-		if columnToExtract < len(record) {
-			oldDomains = append(oldDomains, record[columnToExtract])
-		}
-	}
-
-	NewDomainsToAlert := difference(newDomains, oldDomains)
+	/* NewDomainsToAlert := difference(newDomains, oldDomains)
 	OldDomainsToAlert := difference(oldDomains, newDomains)
 
-	sendToSlack(slackWebhook, fmt.Sprintf("New live domains found: %v", NewDomainsToAlert))
-	sendToSlack(slackWebhook, fmt.Sprintf("Domains that were not to be now longer live: %v", OldDomainsToAlert))
+	fmt.Println("Old domains: ", oldDomains)
+	fmt.Println("New domains: ", NewDomainsToAlert) */
+
+	sendToSlack(slackWebhook, fmt.Sprintf("New domains found: %v", newDomains))
+	//sendToSlack(slackWebhook, fmt.Sprintf("Domains that were not to be now longer live: %v", OldDomainsToAlert))
 }
 
 func NotifyNewDomainsDiscord(newDomains []string, discordWebhook string) {
@@ -82,7 +52,7 @@ func NotifyNewDomainsDiscord(newDomains []string, discordWebhook string) {
 	reader := csv.NewReader(inputFile)
 
 	// The index of the column you want to extract
-	columnToExtract := 3
+	columnToExtract := 6
 
 	// Slice to hold the values from the specified column
 	var oldDomains []string
@@ -112,6 +82,8 @@ func NotifyNewDomainsDiscord(newDomains []string, discordWebhook string) {
 	NewDomainsToAlert := difference(newDomains, oldDomains)
 	OldDomainsToAlert := difference(oldDomains, newDomains)
 
+	fmt.Println("Old domains: ", oldDomains)
+	fmt.Println("New domains: ", NewDomainsToAlert)
 	sendToDiscord(discordWebhook, fmt.Sprintf("New live domains found: %v", NewDomainsToAlert))
 	sendToDiscord(discordWebhook, fmt.Sprintf("Domains that were not to be now longer live: %v", OldDomainsToAlert))
 }
@@ -222,4 +194,104 @@ func installGoTool(name string, path string) {
 	}
 
 	log.Printf("Successfully installed the package: %s", packagePath)
+}
+
+func setupDB() {
+	file, err := os.Create("easyeasm.db")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	file.Close()
+
+	sqliteDatabase, _ := sql.Open("sqlite3", "./easyeasm.db") // Open the created SQLite File
+	defer sqliteDatabase.Close()                              // Defer Closing the database
+	createTable(sqliteDatabase)                               // Create Database Tables
+}
+
+func createTable(db *sql.DB) {
+	createDomainTable := `CREATE TABLE domains (
+		"id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,		
+		"domain" TEXT,
+		"active" BOOLEAN,
+		"live" BOOLEAN,
+		"first_seen" TEXT,
+		"last_seen" TEXT		
+	  );`
+
+	statement, err := db.Prepare(createDomainTable)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	statement.Exec()
+}
+
+func getDomains(db *sql.DB) []string {
+	rows, err := db.Query("SELECT domain FROM domains")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	var domains []string
+	for rows.Next() {
+		var domain string
+		rows.Scan(&domain)
+		domains = append(domains, domain)
+	}
+	return domains
+}
+
+func getActiveDomains(db *sql.DB) []string {
+	rows, err := db.Query("SELECT domain FROM domains WHERE active = 1")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	var domains []string
+	for rows.Next() {
+		var domain string
+		rows.Scan(&domain)
+		domains = append(domains, domain)
+	}
+	return domains
+}
+
+func getLiveDomains(db *sql.DB) []string {
+	rows, err := db.Query("SELECT domain FROM domains WHERE live = 1")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	var domains []string
+	for rows.Next() {
+		var domain string
+		rows.Scan(&domain)
+		domains = append(domains, domain)
+	}
+	return domains
+}
+
+func insertDomain(db *sql.DB, domain string) {
+	insertSQL := `INSERT INTO domains(domain, active, live, first_seen, last_seen) VALUES (?, ?, ?, ?, ?)`
+	statement, err := db.Prepare(insertSQL)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	var now = time.Now()
+	_, err = statement.Exec(domain, 1, 0, now, now)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+}
+
+func updateDomain(db *sql.DB, domain string, live bool) {
+	updateSQL := `UPDATE domains SET live = ?, last_seen = ? WHERE domain = ?`
+	statement, err := db.Prepare(updateSQL)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	var now = time.Now()
+	_, err = statement.Exec(live, now, domain)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
 }

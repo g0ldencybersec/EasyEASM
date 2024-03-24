@@ -15,7 +15,7 @@ func RunHttpx(domains []string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Httpx run completed")
+	fmt.Println("Httpx run completed")
 	processCSV()
 	os.Remove("tempHttpx.txt")
 	os.Remove("temp.csv")
@@ -56,7 +56,7 @@ func processCSV() {
 	}
 
 	// Specify the indices of the columns to keep
-	columnsToKeep := []int{0,1,7,8,10,13,17,20,26,27,28,32,33,35,37} // Keeping only the first and third columns (0-indexed)
+	columnsToKeep := []int{0, 1, 7, 8, 10, 11, 12, 17, 20, 26, 27, 28, 32, 33, 35, 37} // Keeping only interesting columns (0-indexed)
 
 	// Open the output CSV file
 	outputFile, err := os.Create("EasyEASM.csv")

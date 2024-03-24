@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/g0ldencybersec/EasyEASM/pkg/passive/amass"
-	"github.com/g0ldencybersec/EasyEASM/pkg/passive/httpx"
-	"github.com/g0ldencybersec/EasyEASM/pkg/passive/subfinder"
+	"github.com/sethlaw/EasyEASM/pkg/passive/amass"
+	"github.com/sethlaw/EasyEASM/pkg/passive/httpx"
+	"github.com/sethlaw/EasyEASM/pkg/passive/subfinder"
 )
 
 type PassiveRunner struct {

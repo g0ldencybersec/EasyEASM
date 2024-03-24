@@ -1,9 +1,9 @@
 package active
 
 import (
-	"github.com/g0ldencybersec/EasyEASM/pkg/active/alterx"
-	"github.com/g0ldencybersec/EasyEASM/pkg/active/dnsx"
-	"github.com/g0ldencybersec/EasyEASM/pkg/active/httpx"
+	"github.com/sethlaw/EasyEASM/pkg/active/alterx"
+	"github.com/sethlaw/EasyEASM/pkg/active/dnsx"
+	"github.com/sethlaw/EasyEASM/pkg/active/httpx"
 )
 
 type ActiveRunner struct {
