@@ -10,7 +10,7 @@ import (
 
 func RunSubfinder(seedDomain string, results chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	fmt.Printf("Running Subfinder on %s\n", seedDomain)
+	fmt.Printf("    => Running subfinder on %s\n", seedDomain)
 	cmd := exec.Command("subfinder", "-d", seedDomain, "-silent")
 
 	var out bytes.Buffer
@@ -26,5 +26,5 @@ func RunSubfinder(seedDomain string, results chan string, wg *sync.WaitGroup) {
 			results <- domain
 		}
 	}
-	fmt.Printf("Subfinder run completed for %s\n", seedDomain)
+	// fmt.Printf("  => subfinder run completed for %s\n", seedDomain)
 }

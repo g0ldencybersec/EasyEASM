@@ -16,13 +16,12 @@ type PassiveRunner struct {
 }
 
 func (r *PassiveRunner) RunPassiveEnum() []string {
-	fmt.Println("Running Passive Sources")
+	fmt.Println("  => Running Passive Sources")
 	var wg sync.WaitGroup
 	sf_results := make(chan string)
 	amass_results := make(chan string)
 	for _, domain := range r.SeedDomains {
 		wg.Add(2)
-		fmt.Printf("Finding domains for %s\n", domain)
 		go subfinder.RunSubfinder(domain, sf_results, &wg)
 		go amass.RunAmass(domain, amass_results, &wg)
 	}

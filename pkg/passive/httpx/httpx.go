@@ -15,7 +15,7 @@ func RunHttpx(domains []string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Httpx run completed")
+	fmt.Println("  => httpx run completed")
 	processCSV()
 	os.Remove("tempHttpx.txt")
 	os.Remove("temp.csv")

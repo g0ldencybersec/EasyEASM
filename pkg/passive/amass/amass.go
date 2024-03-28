@@ -10,7 +10,7 @@ import (
 
 func RunAmass(seedDomain string, results chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	fmt.Printf("Running Amass on %s\n", seedDomain)
+	fmt.Printf("    => Running amass on %s\n", seedDomain)
 	cmd := exec.Command("amass", "enum", "--passive", "-nocolor", "-d", seedDomain)
 	err := cmd.Run()
 
@@ -31,5 +31,4 @@ func RunAmass(seedDomain string, results chan string, wg *sync.WaitGroup) {
 			results <- domain
 		}
 	}
-	fmt.Printf("Amass Run completed for %s\n", seedDomain)
 }

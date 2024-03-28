@@ -11,7 +11,7 @@ import (
 )
 
 func RunAlterx(domains []string, threads int) []string {
-	fmt.Println("Starting permuatation scan!")
+	fmt.Println("  => Starting permuatation scan!")
 	var results []string
 	createDomainFile(domains)
 
@@ -37,7 +37,7 @@ func RunAlterx(domains []string, threads int) []string {
 			results = append(results, domain)
 		}
 	}
-	fmt.Println("ALTERX DOMAINS", len(results))
+	fmt.Println("  => alterx domains: ", len(results))
 	// fmt.Println(results)
 	os.Remove("tempDomains.txt")
 	os.Remove("alterxDomains.txt")

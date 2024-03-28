@@ -10,7 +10,7 @@ import (
 )
 
 func RunDnsx(seedDomains []string, wordlist string, threads int) []string {
-	fmt.Println("Running dnsx brute force")
+	fmt.Println("  => Running dnsx")
 	var results []string
 	for _, domain := range seedDomains {
 		if domain != "" {
@@ -34,7 +34,7 @@ func RunDnsx(seedDomains []string, wordlist string, threads int) []string {
 
 	}
 
-	fmt.Println("Total dnsx brute force results: ", len(results))
+	// fmt.Println("  => dnsx results: ", len(results))
 	// fmt.Println(results)
 	os.Remove("tempDomains.txt")
 	return results
