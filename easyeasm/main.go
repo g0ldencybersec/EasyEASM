@@ -36,6 +36,11 @@ func main() {
 	}
 	db, _ := sql.Open("sqlite3", "./easyeasm.db")
 
+	client := http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}}
+
 	var newActiveDomains = []string{}
 	var currentActiveDomains = []string{}
 	var newLiveDomains = []string{}
@@ -65,13 +70,18 @@ func main() {
 			fmt.Println("  => Deprecated DNS subdomain: ", domain)
 			deprecatedActiveDomains = append(deprecatedActiveDomains, domain)
 			updateActiveDomain(db, domain, false)
+			if contains(oldLiveDomains, domain) {
+				deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
+				updateLiveDomain(db, domain, false)
+				oldLiveDomains = remove(oldLiveDomains, domain)
+			}
 		} else {
 			currentActiveDomains = append(currentActiveDomains, domain)
 		}
 	}
 	for _, domain := range oldLiveDomains {
-		_, err1 := http.Get("http://" + domain)
-		_, err2 := http.Get("https://" + domain)
+		_, err1 := client.Get("http://" + domain)
+		_, err2 := client.Get("https://" + domain)
 		if err1 != nil && err2 != nil {
 			fmt.Println("  => Deprecated live subdomain: ", domain)
 			deprecatedLiveDomains = append(deprecatedLiveDomains, domain)
@@ -158,8 +168,8 @@ func main() {
 			if !domainExists(db, domain) {
 				insertDomain(db, domain)
 			}
-			_, err1 := http.Get("http://" + domain)
-			_, err2 := http.Get("https://" + domain)
+			_, err1 := client.Get("http://" + domain)
+			_, err2 := client.Get("https://" + domain)
 			if err1 != nil && err2 != nil {
 				updateLiveDomain(db, domain, false)
 			} else {
