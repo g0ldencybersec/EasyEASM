@@ -11,7 +11,7 @@ import (
 )
 
 func RunAlterx(domains []string, threads int) []string {
-	fmt.Println("Starting permuatation scan!")
+	fmt.Println("  => Starting permuatation scan!")
 	var results []string
 	createDomainFile(domains)
 
@@ -19,7 +19,7 @@ func RunAlterx(domains []string, threads int) []string {
 	err := cmd.Run()
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	cmd = exec.Command("dnsx", "-l", "alterxDomains.txt", "-silent", "-a", "-cname", "-aaaa", "-t", strconv.Itoa(threads))
@@ -29,7 +29,7 @@ func RunAlterx(domains []string, threads int) []string {
 	err = cmd.Run()
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	for _, domain := range strings.Split(out.String(), "\n") {
@@ -37,8 +37,8 @@ func RunAlterx(domains []string, threads int) []string {
 			results = append(results, domain)
 		}
 	}
-	fmt.Println("ALTERX RESULTS")
-	fmt.Println(results)
+	fmt.Println("  => alterx domains: ", len(results))
+	// fmt.Println(results)
 	os.Remove("tempDomains.txt")
 	os.Remove("alterxDomains.txt")
 
@@ -49,7 +49,8 @@ func createDomainFile(domains []string) {
 	file, err := os.OpenFile("tempDomains.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 
 	datawriter := bufio.NewWriter(file)

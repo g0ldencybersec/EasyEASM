@@ -13,9 +13,9 @@ func RunHttpx(domains []string) {
 	cmd := exec.Command("httpx", "-l", "tempHttpx.txt", "-silent", "-td", "-csv", "-o", "temp.csv")
 	err := cmd.Run()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
-	fmt.Printf("Httpx run completed")
+	fmt.Println("  => httpx run completed")
 	processCSV()
 	os.Remove("tempHttpx.txt")
 	os.Remove("temp.csv")
@@ -25,7 +25,7 @@ func writeTempFile(list []string) {
 	file, err := os.OpenFile("tempHttpx.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	datawriter := bufio.NewWriter(file)
@@ -42,7 +42,7 @@ func processCSV() {
 	// Open the CSV file
 	inputFile, err := os.Open("temp.csv")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	defer inputFile.Close()
 
@@ -52,16 +52,16 @@ func processCSV() {
 	// Read the whole CSV into memory
 	records, err := reader.ReadAll()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Specify the indices of the columns to keep
-	columnsToKeep := []int{0,1,7,8,10,13,17,20,26,27,28,32,33,35,37} // Keeping only the first and third columns (0-indexed)
+	columnsToKeep := []int{0, 1, 7, 8, 10, 11, 12, 17, 20, 26, 27, 28, 32, 33, 35, 37} // Keeping only the first and third columns (0-indexed)
 
 	// Open the output CSV file
 	outputFile, err := os.Create("EasyEASM.csv")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	defer outputFile.Close()
 
@@ -77,13 +77,15 @@ func processCSV() {
 			}
 		}
 		if err := writer.Write(filteredRecord); err != nil {
-			panic(err)
+			fmt.Println(err)
+			return
 		}
 	}
 
 	// Ensure everything is written to the output file
 	if err := writer.Error(); err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 
 }
