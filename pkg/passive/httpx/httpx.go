@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/g0ldencybersec/EasyEASM/pkg/utils"
 )
 
 func RunHttpx(domains []string) {
 	writeTempFile(domains)
-	cmd := exec.Command("httpx", "-l", "tempHttpx.txt", "-silent", "-td", "-csv", "-o", "temp.csv")
+	binPath := utils.GetGoEnvPathBin()
+	cmd := exec.Command(binPath+"/httpx", "-l", "tempHttpx.txt", "-silent", "-td", "-csv", "-o", "temp.csv")
 	err := cmd.Run()
 	if err != nil {
 		panic(err)
@@ -56,7 +59,7 @@ func processCSV() {
 	}
 
 	// Specify the indices of the columns to keep
-	columnsToKeep := []int{0,1,7,8,10,13,17,20,26,27,28,32,33,35,37} // Keeping only the first and third columns (0-indexed)
+	columnsToKeep := []int{0, 1, 7, 8, 10, 13, 17, 20, 26, 27, 28, 32, 33, 35, 37} // Keeping only the first and third columns (0-indexed)
 
 	// Open the output CSV file
 	outputFile, err := os.Create("EasyEASM.csv")

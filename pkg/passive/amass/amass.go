@@ -6,18 +6,21 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/g0ldencybersec/EasyEASM/pkg/utils"
 )
 
 func RunAmass(seedDomain string, results chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	fmt.Printf("Running Amass on %s\n", seedDomain)
-	cmd := exec.Command("amass", "enum", "--passive", "-nocolor", "-d", seedDomain)
+	binPath := utils.GetGoEnvPathBin()
+	cmd := exec.Command(binPath+"/amass", "enum", "--passive", "-nocolor", "-d", seedDomain)
 	err := cmd.Run()
 
 	if err != nil {
 		panic(err)
 	}
-	cmd = exec.Command("oam_subs", "-names", "-d", seedDomain)
+	cmd = exec.Command(binPath+"/oam_subs", "-names", "-d", seedDomain)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 

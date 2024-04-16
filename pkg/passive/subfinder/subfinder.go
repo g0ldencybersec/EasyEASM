@@ -6,13 +6,15 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/g0ldencybersec/EasyEASM/pkg/utils"
 )
 
 func RunSubfinder(seedDomain string, results chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	fmt.Printf("Runing Subfinder on %s\n", seedDomain)
-	cmd := exec.Command("subfinder", "-d", seedDomain, "-silent")
-
+	binPath := utils.GetGoEnvPathBin()
+	cmd := exec.Command(binPath+"/subfinder", "-d", seedDomain, "-silent")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 func RemoveDuplicates(slice []string) []string {
@@ -194,7 +195,7 @@ func InstallTools() {
 		"subfinder": "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
 	} {
 		if !checkTool(name) {
-			installGoTool(name, path)
+			installGoTool(path)
 		}
 	}
 
@@ -202,7 +203,11 @@ func InstallTools() {
 }
 
 func checkTool(name string) bool {
-	_, err := exec.LookPath(name)
+	binPath := GetGoEnvPathBin()
+	// Construct the executable file path for the tool.
+	toolPath := filepath.Join(binPath, name)
+
+	_, err := os.Stat(toolPath)
 	if err != nil {
 		fmt.Printf("%s is not installed\n", name)
 		return false
@@ -211,10 +216,9 @@ func checkTool(name string) bool {
 	return true
 }
 
-func installGoTool(name string, path string) {
+func installGoTool(path string) {
 	// Replace this with the package you want to install
 	packagePath := path
-
 	cmd := exec.Command("go", "install", packagePath)
 	cmdOutput, err := cmd.CombinedOutput()
 	if err != nil {
@@ -222,4 +226,14 @@ func installGoTool(name string, path string) {
 	}
 
 	log.Printf("Successfully installed the package: %s", packagePath)
+}
+
+func GetGoEnvPathBin() string {
+	// Get the path of the bin directory from the Go environment variables.
+	goPath := os.Getenv("GOPATH")
+	if goPath == "" {
+		goPath = filepath.Join(os.Getenv("HOME"), "go")
+	}
+	binPath := filepath.Join(goPath, "bin")
+	return binPath
 }
